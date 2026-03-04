@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text-center">
+    <h1>Smart Event Management & E-Ticketing System</h1>
+    <p class="lead">Manage events, sell tickets, track attendance in real-time.</p>
+
+    {% if not user.is_authenticated %}
+        <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Get Started</a>
+    {% endif %}
+</div>
+{% endblock %}
