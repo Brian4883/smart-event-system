@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>My Tickets</h2>
+
+<div class="ticket-container">
+
+{% for ticket in tickets %}
+
+<div class="ticket-card">
+
+    <h3>{{ ticket.event.title }}</h3>
+
+    <p><strong>Ticket Code:</strong> {{ ticket.ticket_code }}</p>
+
+    <p><strong>Date Purchased:</strong> {{ ticket.created_at }}</p>
+
+    <p><strong>QR Code:</strong></p>
+
+    <img src="{{ ticket.qr_code.url }}" width="150">
+
+</div>
+
+{% empty %}
+
+<p>You have no tickets.</p>
+
+{% endfor %}
+
+</div>
+
+{% endblock %}
