@@ -1,17 +1,37 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>User Profile</h2>
-{% if user.profile_picture and user.profile_picture.url %}
-<img src="{{ user.profile_picture.url }}" width="150" height="150">
-{% else %}
-<img src="/media/default.png" width="150" height="150">
-{% endif %}
-<p>Username: {{ user.username }}</p>
-<p>Email: {{ user.email }}</p>
-<p>Role: {{ user.role }}</p>
-<p>Phone: {{ user.phone }}</p>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3>User Profile</h3>
+                </div>
+                <div class="card-body text-center">
 
-<a href="{% url 'update_profile' %}">Edit Profile</a>
-<a href="{% url 'logout' %}">Logout</a>
+                    <!-- Profile Picture -->
+                    {% if user.profile_picture and user.profile_picture.url %}
+                    <img src="{{ user.profile_picture.url }}" class="rounded-circle mb-3" width="150" height="150"
+                        alt="Profile Picture">
+                    {% else %}
+                    <img src="/media/default.png" class="rounded-circle mb-3" width="150" height="150"
+                        alt="Default Profile">
+                    {% endif %}
+
+                    <!-- User Info -->
+                    <h5 class="card-title">{{ user.username }}</h5>
+                    <p class="card-text mb-1"><strong>Email:</strong> {{ user.email }}</p>
+                    <p class="card-text mb-1"><strong>Role:</strong> {{ user.role|capfirst }}</p>
+                    <p class="card-text mb-3"><strong>Phone:</strong> {{ user.phone }}</p>
+
+                    <!-- Action Buttons -->
+                    <a href="{% url 'update_profile' %}" class="btn btn-primary me-2">Edit Profile</a>
+                    <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
