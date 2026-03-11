@@ -1,41 +1,66 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Smart Event System</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'styles.css' %}">
 </head>
+
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container">
-    <a class="navbar-brand" href="/">Smart Event</a>
-    <div>
-        {% if user.is_authenticated %}
-            <span class="text-white me-3">Hello, {{ user.username }}</span>
-            <a href="{% url 'logout' %}" class="btn btn-danger btn-sm">Logout</a>
-    <nav>
-        <a href="/events/">Events</a>
-        <a href="tickets/">My Tickets</a>
-        <a href="/admin/">Admin</a>
-    </nav>
-        {% else %}
-            <a href="{% url 'login' %}" class="btn btn-success btn-sm">Login</a>
-            <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Register</a>
-        {% endif %}
-    </div>
-  </div>
-</nav>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
 
-<div class="container mt-5">
-    {% block content %}
-    {% endblock %}
-</div>
-<footer>
-    <hr>
-    <p>Smart Event System © 2026</p>
-</footer>
+            <a class="navbar-brand" href="{% url 'home' %}">Smart Event</a>
+
+            <div class="d-flex align-items-center">
+
+                {% if user.is_authenticated %}
+
+                <span class="text-white me-3">
+                    Hello, {{ user.username }}
+                </span>
+
+                <!-- ROLE BASED DASHBOARD -->
+                {% if user.role == "admin" %}
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-info btn-sm me-2">Dashboard</a>
+
+                {% elif user.role == "organizer" %}
+                <a href="{% url 'organizer_dashboard' %}" class="btn btn-info btn-sm me-2">Dashboard</a>
+
+                {% else %}
+                <a href="{% url 'attendee_dashboard' %}" class="btn btn-info btn-sm me-2">Dashboard</a>
+                {% endif %}
+
+                <a href="{% url 'logout' %}" class="btn btn-danger btn-sm me-2">Logout</a>
+
+                {% else %}
+
+                <a href="{% url 'login' %}" class="btn btn-success btn-sm me-2">Login</a>
+                <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Register</a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+    </nav>
+
+
+    <div class="container mt-5">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+
+    <footer class="text-center mt-5">
+        <hr>
+        <p>Smart Event System © 2026</p>
+    </footer>
 
 </body>
+
 </html>

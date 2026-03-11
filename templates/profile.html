@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>User Profile</h2>
+{% if user.profile_picture and user.profile_picture.url %}
+<img src="{{ user.profile_picture.url }}" width="150" height="150">
+{% else %}
+<img src="/media/default.png" width="150" height="150">
+{% endif %}
+<p>Username: {{ user.username }}</p>
+<p>Email: {{ user.email }}</p>
+<p>Role: {{ user.role }}</p>
+<p>Phone: {{ user.phone }}</p>
+
+<a href="{% url 'update_profile' %}">Edit Profile</a>
+<a href="{% url 'logout' %}">Logout</a>
+{% endblock %}
