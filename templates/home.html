@@ -1,12 +1,58 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="text-center">
-    <h1>Smart Event Management & E-Ticketing System</h1>
-    <p class="lead">Manage events, sell tickets, track attendance in real-time.</p>
 
-    {% if not user.is_authenticated %}
-        <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Get Started</a>
-    {% endif %}
+<!-- HERO CAROUSEL -->
+<div id="heroCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        {% for slide in hero_slides %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <img src="{{ slide.image.url }}" class="d-block w-100" style="height: 500px; object-fit: cover;"
+                alt="{{ slide.title }}">
+            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 p-3 rounded">
+                <h2>{{ slide.title }}</h2>
+                <p>{{ slide.subtitle }}</p>
+                {% if not user.is_authenticated %}
+                <a href="{% url 'login' %}" class="btn btn-success me-2">Login</a>
+                <a href="{% url 'register' %}" class="btn btn-primary">Sign Up</a>
+                {% else %}
+                <a href="{% url 'attendee_dashboard' %}" class="btn btn-info">Go to Dashboard</a>
+                <a href="{% url 'logout' %}">Logout</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+    </button>
 </div>
+
+<!-- FEATURED EVENTS -->
+<div class="container my-5">
+    <h2 class="text-center mb-4">Featured Events</h2>
+    <div class="row">
+        {% for event in events %}
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <img src="{{ event.image.url }}" class="card-img-top" style="height:200px; object-fit:cover;"
+                    alt="{{ event.title }}">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ event.title }}</h5>
+                    <p class="card-text">{{ event.short_description }}</p>
+                    <p class="mt-auto"><strong>Date:</strong> {{ event.date }}</p>
+                    <a href="{% url 'event_detail' event.id %}" class="btn btn-primary mt-2">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-center">No events yet!</p>
+        {% endfor %}
+    </div>
+</div>
+
 {% endblock %}

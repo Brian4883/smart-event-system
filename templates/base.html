@@ -1,65 +1,140 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Event System</title>
 
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            background: #f5f7fa;
+        }
+
+        .sidebar {
+            height: 100vh;
+            background: #343a40;
+            padding-top: 20px;
+        }
+
+        .sidebar a {
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .sidebar a i {
+            margin-right: 10px;
+        }
+
+        .sidebar a:hover {
+            background: #495057;
+            text-decoration: none;
+        }
+
+        .dropdown-menu a i {
+            margin-right: 8px;
+        }
+
+        .badge-notification {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font-size: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                height: auto;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
             <a class="navbar-brand" href="{% url 'home' %}">Smart Event</a>
-
-            <div class="d-flex align-items-center">
-
-                {% if user.is_authenticated %}
-
-                <span class="text-white me-3">
-                    Hello, {{ user.username }}
-                </span>
-
-                <!-- ROLE BASED DASHBOARD -->
-                {% if user.role == "admin" %}
-                <a href="{% url 'admin_dashboard' %}" class="btn btn-info btn-sm me-2">Dashboard</a>
-
-                {% elif user.role == "organizer" %}
-                <a href="{% url 'organizer_dashboard' %}" class="btn btn-info btn-sm me-2">Dashboard</a>
-
-                {% else %}
-                <a href="{% url 'attendee_dashboard' %}" class="btn btn-info btn-sm me-2">Dashboard</a>
-                {% endif %}
-
-                <a href="{% url 'logout' %}" class="btn btn-danger btn-sm me-2">Logout</a>
-
-                {% else %}
-
-                <a href="{% url 'login' %}" class="btn btn-success btn-sm me-2">Login</a>
-                <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Register</a>
-
-                {% endif %}
-
-            </div>
-
         </div>
     </nav>
 
+    <div class="container-fluid">
+        <div class="row">
 
-    <div class="container mt-5">
-        {% block content %}
-        {% endblock %}
+            {% if user.is_authenticated %}
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar">
+                <h5 class="text-white text-center mb-3">Menu</h5>
+                <hr style="color:white">
+
+                <a href="{% url 'profile' %}"><i class="bi bi-person"></i> Profile</a>
+
+                {% if user.role == "admin" %}
+                <a href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2"></i> Admin Dashboard</a>
+                {% elif user.role == "organizer" %}
+                <a href="{% url 'organizer_dashboard' %}"><i class="bi bi-calendar-event"></i> Organizer Dashboard</a>
+                {% else %}
+                <a href="{% url 'attendee_dashboard' %}"><i class="bi bi-grid"></i> Dashboard</a>
+                {% endif %}
+
+                <a href="#"><i class="bi bi-ticket-perforated"></i> Events</a>
+                <a href="#"><i class="bi bi-credit-card-2-front"></i> Tickets</a>
+
+                <!-- Settings Dropdown -->
+                <div class="dropdown mt-3 position-relative">
+                    <button class="btn btn-secondary w-100 dropdown-toggle text-start position-relative" type="button"
+                        id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-gear-fill me-2"></i> Settings
+
+                        {% if unread_notifications > 0 %}
+                        <span class="badge rounded-pill bg-danger badge-notification">
+                            {{ unread_notifications }}
+                        </span>
+                        {% endif %}
+                    </button>
+
+                    <ul class="dropdown-menu w-100" aria-labelledby="settingsDropdown">
+                        <li>
+                            <a class="dropdown-item bg-primary text-white" href="{% url 'update_profile' %}">
+                                <i class="bi bi-person"></i> Profile Settings
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item bg-success text-white" href="{% url 'password_reset' %}">
+                                <i class="bi bi-key"></i> Change Password
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item bg-danger text-white" href="{% url 'logout' %}">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Main Content -->
+            <div class="{% if user.is_authenticated %}col-md-10{% else %}col-md-12{% endif %} p-4">
+                {% block content %}
+                {% endblock %}
+            </div>
+
+        </div>
     </div>
 
-
-    <footer class="text-center mt-5">
-        <hr>
-        <p>Smart Event System © 2026</p>
-    </footer>
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 
