@@ -1,13 +1,21 @@
 # users/views.py
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from .forms import CustomUserCreationForm, UpdateProfileForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponse
+import csv
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+
+# If you have events app
+from events.models import Event
+
+User = get_user_model()
 
 
 def register_view(request):
@@ -84,7 +92,103 @@ def admin_dashboard(request):
     if request.user.role != "admin":
         return HttpResponseForbidden("You are not allowed here")
 
-    return render(request, "dashboards/admin_dashboard.html")
+    total_users = User.objects.count()
+    total_events = Event.objects.count()
+
+    context = {
+        "total_users": total_users,
+        "total_events": total_events,
+    }
+
+    return render(request, "dashboards/admin_dashboard.html", context)
+
+@login_required
+def admin_users(request):
+    if request.user.role != "admin":
+        return HttpResponseForbidden("Unauthorized")
+
+    users = User.objects.all()
+    return render(request, "admin/users.html", {"users": users})
+
+
+@login_required
+def change_user_role(request, user_id):
+    if request.user.role != "admin":
+        return HttpResponseForbidden("Unauthorized")
+
+    user = User.objects.get(id=user_id)
+
+    if request.method == "POST":
+        new_role = request.POST.get("role")
+        user.role = new_role
+        user.save()
+        messages.success(request, "User role updated successfully")
+
+    return redirect("admin_users")
+
+
+@login_required
+def admin_events(request):
+    if request.user.role != "admin":
+        return HttpResponseForbidden("Unauthorized")
+
+    events = Event.objects.all()
+    return render(request, "admin/events.html", {"events": events})
+
+
+@login_required
+def generate_report(request):
+    if request.user.role != "admin":
+        return HttpResponseForbidden("Unauthorized")
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="report.pdf"'
+
+    doc = SimpleDocTemplate(response)
+    styles = getSampleStyleSheet()
+
+    content = []
+
+    content.append(Paragraph("Smart Event System Report", styles['Title']))
+
+    total_users = User.objects.count()
+    total_events = Event.objects.count()
+
+    content.append(Paragraph(f"Total Users: {total_users}", styles['Normal']))
+    content.append(Paragraph(f"Total Events: {total_events}", styles['Normal']))
+
+    doc.build(content)
+
+    return response
+
+
+@login_required
+def export_users_csv(request):
+    if request.user.role != "admin":
+        return HttpResponseForbidden("Unauthorized")
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="users.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Username', 'Email', 'Role'])
+
+    for user in User.objects.all():
+        writer.writerow([user.username, user.email, user.role])
+
+    return response
+
+
+@login_required
+def delete_user(request, user_id):
+    if request.user.role != "admin":
+        return HttpResponseForbidden("Unauthorized")
+
+    user = User.objects.get(id=user_id)
+    user.delete()
+
+    messages.success(request, "User deleted successfully")
+    return redirect("admin_users")
 
 
 @login_required
