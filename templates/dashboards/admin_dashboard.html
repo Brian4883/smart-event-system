@@ -1,14 +1,138 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
-<h2>Admin Dashboard</h2>
 
-<p>Welcome Admin {{ user.username }}</p>
+<div class="container-fluid">
 
-<ul>
-    <li>Manage users</li>
-    <li>Manage events</li>
-    <li>View reports</li>
-</ul>
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Admin Dashboard</h2>
+        <span class="text-muted">Welcome, {{ user.username }} 👑</span>
+    </div>
+
+    <!-- STATS -->
+    <div class="row mb-4">
+
+        <div class="col-md-3">
+            <div class="card shadow border-0 text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Users</h6>
+                    <h3 class="text-primary">{{ total_users }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow border-0 text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Organizers</h6>
+                    <h3 class="text-info">{{ total_organizers }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow border-0 text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Pending Events</h6>
+                    <h3 class="text-warning">{{ pending_events|length }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow border-0 text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Approved Events</h6>
+                    <h3 class="text-success">{{ approved_events|length }}</h3>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ORGANIZER VERIFICATION -->
+    <div class="card shadow border-0 mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Unverified Organizers</h5>
+        </div>
+
+        <div class="card-body">
+            {% if unverified_organizers %}
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for org in unverified_organizers %}
+                    <tr>
+                        <td>{{ org.username }}</td>
+                        <td>{{ org.email }}</td>
+                        <td>
+                            <a href="{% url 'verify_organizer' org.id %}" class="btn btn-success btn-sm">
+                                Verify
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">No organizers pending verification.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- EVENT APPROVAL -->
+    <div class="card shadow border-0">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0">Pending Events Approval</h5>
+        </div>
+
+        <div class="card-body">
+            {% if pending_events %}
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Organizer</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for event in pending_events %}
+                        <tr>
+                            <td>{{ event.title }}</td>
+                            <td>{{ event.organizer.username }}</td>
+                            <td>{{ event.start_date }}</td>
+                            <td>
+                                <a href="{% url 'approve_event' event.id %}" class="btn btn-success btn-sm">
+                                    Approve
+                                </a>
+                                <a href="{% url 'delete_event' event.id %}" class="btn btn-danger btn-sm">
+                                    Reject
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No pending events.</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
 
 {% endblock %}

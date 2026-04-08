@@ -11,6 +11,7 @@ from django.http import HttpResponseForbidden, HttpResponse
 import csv
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
+from django.shortcuts import get_object_or_404
 
 # If you have events app
 from events.models import Event
@@ -88,19 +89,27 @@ def password_reset_view(request):
 
 @login_required
 def admin_dashboard(request):
-
     if request.user.role != "admin":
-        return HttpResponseForbidden("You are not allowed here")
+        return HttpResponseForbidden()
 
     total_users = User.objects.count()
-    total_events = Event.objects.count()
+    total_organizers = User.objects.filter(role="organizer").count()
+
+    unverified_organizers = User.objects.filter(role="organizer", is_verified=False)
+
+    pending_events = Event.objects.filter(is_approved=False)
+    approved_events = Event.objects.filter(is_approved=True)
 
     context = {
         "total_users": total_users,
-        "total_events": total_events,
+        "total_organizers": total_organizers,
+        "unverified_organizers": unverified_organizers,
+        "pending_events": pending_events,
+        "approved_events": approved_events,
     }
 
     return render(request, "dashboards/admin_dashboard.html", context)
+
 
 @login_required
 def admin_users(request):
@@ -109,6 +118,22 @@ def admin_users(request):
 
     users = User.objects.all()
     return render(request, "admin/users.html", {"users": users})
+
+
+@login_required
+def verify_organizer(request, user_id):
+    if request.user.role != "admin":
+        return HttpResponseForbidden("Not allowed")
+
+    user = get_object_or_404(User, id=user_id)
+
+    # Only verify organizers
+    if user.role == "organizer":
+        user.is_verified = True
+        user.save()
+        messages.success(request, f"{user.username} has been verified.")
+
+    return redirect('admin_dashboard')
 
 
 @login_required
@@ -134,6 +159,19 @@ def admin_events(request):
 
     events = Event.objects.all()
     return render(request, "admin/events.html", {"events": events})
+
+
+@login_required
+def approve_event(request, event_id):
+    if request.user.role != "admin":
+        return HttpResponseForbidden()
+
+    event = get_object_or_404(Event, id=event_id)
+    event.is_approved = True
+    event.save()
+
+    messages.success(request, "Event approved successfully.")
+    return redirect('admin_dashboard')
 
 
 @login_required
@@ -193,7 +231,17 @@ def delete_user(request, user_id):
 
 @login_required
 def organizer_dashboard(request):
-    return render(request, "dashboards/organizer_dashboard.html")
+    events = Event.objects.filter(organizer=request.user)
+
+    approved = events.filter(is_approved=True)
+    pending = events.filter(is_approved=False)
+
+    context = {
+        "approved_events": approved,
+        "pending_events": pending
+    }
+
+    return render(request, "dashboards/organizer_dashboard.html", context)
 
 
 @login_required

@@ -22,7 +22,7 @@
                     </div>
                     {% endif %}
 
-                    {{ form.as_p }}
+
 
                     <div class="mb-3">
                         {{ form.username.label_tag }}
@@ -48,7 +48,15 @@
                         {% endif %}
                     </div>
 
-                                <div class="mb-3">
+                    <div class="mb-3">
+                        {{ form.password1.label_tag }}
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                        <div class="text-danger">{{ form.password1.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
                         {{ form.password2.label_tag }}
                         {{ form.password2 }}
                         {% if form.password2.errors %}
@@ -61,7 +69,7 @@
             </div>
 
             <div class="card-footer text-center">
-            
+
 
                 <span class="text-secondary d-block mt-2">
                     Already have an account?
