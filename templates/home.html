@@ -4,6 +4,7 @@
 {% block content %}
 
 <!-- HERO SECTION -->
+
 <div class="hero-wrapper">
     <div class="hero-glow-blob"></div>
     <div class="container hero-content text-center">
@@ -37,11 +38,30 @@
     </div>
 </div>
 
-<!-- HERO SECTION -->
-<div class="text-white d-flex align-items-center justify-content-center text-center" style="
-    height: 80vh;
-    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
-                url('{% static " images/hero.jpg" %}'); background-size: cover; background-position: center; ">
+<!-- HERO CAROUSEL -->
+<div id="heroCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        {% for slide in hero_slides %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <img src="{{ slide.image.url }}" class="d-block w-100" style="height: 500px; object-fit: cover;"
+                alt="{{ slide.title }}">
+            <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 p-3 rounded">
+                <h2>{{ slide.title }}</h2>
+                <p>{{ slide.subtitle }}</p>
+                {% if not user.is_authenticated %}
+                <a href="{% url 'login' %}" class="btn btn-success me-2">Login</a>
+                <a href="{% url 'register' %}" class="btn btn-primary">Sign Up</a>
+                {% else %}
+                <a href="{% url 'attendee_dashboard' %}" class="btn btn-info">Go to Dashboard</a>
+                <a href="{% url 'logout' %}">Logout</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="hero-banner text-white d-flex align-items-center justify-content-center text-center">
 
     <div>
         <h1 class=" display-3 fw-bold">Discover Amazing Events</h1>
@@ -90,6 +110,7 @@
             <p>Support</p>
         </div>
 
+
     </div>
 </div>
 
@@ -103,7 +124,7 @@
 
             <div class="card border-0 shadow h-100 event-card">
 
-                <img src="{{ event.image.url }}" class="card-img-top" style="height:220px; object-fit:cover;"
+                <img src="{{ event.image.url }}" class="card-img-top" 
                     alt="{{ event.title }}">
 
                 <div class="card-body d-flex flex-column">
@@ -137,8 +158,9 @@
     </div>
 </div>
 
+
 <!-- CTA SECTION -->
-<div class="text-white text-center p-5 rounded mb-5" style="background: linear-gradient(135deg, #0d6efd, #6610f2);">
+<div class="cta-banner text-white text-center p-5 rounded mb-5">
 
     <h2 class="fw-bold">Want to host your own event?</h2>
     <p>Create and manage events easily with our system.</p>
@@ -157,6 +179,18 @@
 
 <!-- CUSTOM STYLES -->
 <style>
+    .hero-banner {
+        height: 80vh;
+        background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('{% static "images/hero.jpg" %}');
+        background-size: cover;
+        background-position: center;
+    }
+
+    .cta-banner {
+        background: linear-gradient(135deg, #0d6efd, #6610f2);
+    }
+
+
     .event-card {
         transition: 0.3s ease;
     }
