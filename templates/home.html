@@ -3,167 +3,1542 @@
 
 {% block content %}
 
-<!-- HERO SECTION -->
-<div class="hero-wrapper">
-    <div class="hero-glow-blob"></div>
-    <div class="container hero-content text-center">
-        <h1 class="hero-title text-gradient fade-in-up">The Future of<br>Event Management</h1>
-        <p class="hero-subtitle fade-in-up delay-1">
-            Seamlessly coordinate, track attendance in real-time, and elevate every attendee's experience with our
-            intelligent, data-driven platform.
+<!-- ═══════════════ FONTS ═══════════════ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Outfit:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+
+<style>
+    /* ══════════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════════ */
+    :root {
+        --bg: #07090f;
+        --surface: #0e1118;
+        --surface2: #141720;
+        --border: rgba(255, 255, 255, .08);
+        --gold: #c9a84c;
+        --gold-light: #e8cc7a;
+        --teal: #2dd4c0;
+        --text: #f0ede8;
+        --muted: rgba(240, 237, 232, .45);
+        --radius: 10px;
+        --transition: .35s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Outfit', sans-serif;
+        font-weight: 400;
+        overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════════════════
+   NOISE / GRAIN OVERLAY
+══════════════════════════════════════════ */
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+        opacity: .025;
+        pointer-events: none;
+        z-index: 9999;
+    }
+
+    /* ══════════════════════════════════════════
+   NAVBAR OVERRIDE (minimal top bar)
+══════════════════════════════════════════ */
+    .hp-topbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 200;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.1rem 4vw;
+        background: rgba(7, 9, 15, .7);
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid var(--border);
+        transition: background var(--transition);
+    }
+
+    .hp-topbar__logo {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.55rem;
+        font-weight: 700;
+        color: var(--gold);
+        text-decoration: none;
+        letter-spacing: .03em;
+    }
+
+    .hp-topbar__logo span {
+        color: var(--text);
+    }
+
+    .hp-topbar__nav {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .hp-topbar__nav a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: .88rem;
+        font-weight: 500;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        transition: color .2s;
+    }
+
+    .hp-topbar__nav a:hover {
+        color: var(--text);
+    }
+
+    .hp-topbar__cta {
+        background: var(--gold);
+        color: #07090f;
+        padding: .55rem 1.5rem;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: .85rem;
+        text-decoration: none;
+        transition: background .2s, transform .15s;
+        letter-spacing: .04em;
+    }
+
+    .hp-topbar__cta:hover {
+        background: var(--gold-light);
+        transform: translateY(-1px);
+        color: #07090f;
+    }
+
+    /* ══════════════════════════════════════════
+   HERO
+══════════════════════════════════════════ */
+    .hp-hero {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        padding: 8rem 4vw 6rem;
+        overflow: hidden;
+    }
+
+    .hp-hero__photo {
+        position: absolute;
+        inset: 0;
+        background:url('{% static "images/hero.jpg" %}') center/cover no-repeat;
+        opacity: .18;
+        transform: scale(1.06);
+        animation: bgZoom 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgZoom {
+        from {
+            transform: scale(1.06);
+        }
+
+        to {
+            transform: scale(1.14);
+        }
+    }
+
+    /* radial glow */
+    .hp-hero::after {
+        content: '';
+        position: absolute;
+        width: 700px;
+        height: 700px;
+        top: -200px;
+        right: -150px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(201, 168, 76, .18) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .hp-hero__inner {
+        position: relative;
+        z-index: 2;
+        max-width: 700px;
+    }
+
+    .hp-hero__tag {
+        display: inline-flex;
+        align-items: center;
+        gap: .6rem;
+        border: 1px solid var(--gold);
+        color: var(--gold);
+        font-size: .75rem;
+        font-weight: 600;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        padding: .38rem 1rem;
+        border-radius: 40px;
+        margin-bottom: 2rem;
+        opacity: 0;
+        animation: fadeUp .7s .2s ease forwards;
+    }
+
+    .hp-hero__tag i {
+        font-size: .7rem;
+    }
+
+    .hp-hero__title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(3.4rem, 7vw, 6.5rem);
+        font-weight: 700;
+        line-height: 1.02;
+        color: var(--text);
+        margin-bottom: 1.6rem;
+        opacity: 0;
+        animation: fadeUp .8s .4s ease forwards;
+    }
+
+    .hp-hero__title .gold {
+        color: var(--gold);
+    }
+
+    .hp-hero__title em {
+        font-style: italic;
+        color: var(--muted);
+    }
+
+    .hp-hero__sub {
+        font-size: clamp(1rem, 1.8vw, 1.15rem);
+        color: var(--muted);
+        line-height: 1.8;
+        max-width: 520px;
+        margin-bottom: 2.8rem;
+        font-weight: 300;
+        opacity: 0;
+        animation: fadeUp .8s .6s ease forwards;
+    }
+
+    .hp-hero__btns {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        opacity: 0;
+        animation: fadeUp .8s .8s ease forwards;
+    }
+
+    /* ══════════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════════ */
+    .btn-gold {
+        background: var(--gold);
+        color: #07090f;
+        padding: .9rem 2.4rem;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: .95rem;
+        text-decoration: none;
+        display: inline-block;
+        transition: background .2s, transform .15s, box-shadow .2s;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-gold:hover {
+        background: var(--gold-light);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 28px rgba(201, 168, 76, .35);
+        color: #07090f;
+    }
+
+    .btn-ghost {
+        background: transparent;
+        color: var(--text);
+        padding: .9rem 2.4rem;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: .95rem;
+        text-decoration: none;
+        display: inline-block;
+        border: 1px solid var(--border);
+        transition: border-color .2s, transform .15s, background .2s;
+    }
+
+    .btn-ghost:hover {
+        border-color: rgba(255, 255, 255, .35);
+        transform: translateY(-2px);
+        background: rgba(255, 255, 255, .05);
+        color: var(--text);
+    }
+
+    /* ══════════════════════════════════════════
+   SCROLL MARQUEE STRIP
+══════════════════════════════════════════ */
+    .hp-marquee {
+        overflow: hidden;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        padding: .9rem 0;
+        background: var(--surface);
+    }
+
+    .hp-marquee__track {
+        display: flex;
+        gap: 3rem;
+        animation: marquee 28s linear infinite;
+        white-space: nowrap;
+        width: max-content;
+    }
+
+    .hp-marquee__track span {
+        font-size: .78rem;
+        font-weight: 500;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        gap: .8rem;
+    }
+
+    .hp-marquee__track span i {
+        color: var(--gold);
+        font-size: .7rem;
+    }
+
+    @keyframes marquee {
+        from {
+            transform: translateX(0);
+        }
+
+        to {
+            transform: translateX(-50%);
+        }
+    }
+
+    /* ══════════════════════════════════════════
+   STICKY SEARCH
+══════════════════════════════════════════ */
+    .hp-search {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 1.3rem 4vw;
+    }
+
+    .hp-search__wrap {
+        max-width: 700px;
+        margin: 0 auto;
+        display: flex;
+        gap: .75rem;
+        align-items: center;
+    }
+
+    .hp-search__input {
+        flex: 1;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 40px;
+        padding: .8rem 1.4rem;
+        color: var(--text);
+        font-family: 'Outfit', sans-serif;
+        font-size: .92rem;
+        outline: none;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .hp-search__input::placeholder {
+        color: var(--muted);
+    }
+
+    .hp-search__input:focus {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 3px rgba(201, 168, 76, .12);
+    }
+
+    .hp-search__btn {
+        background: var(--teal);
+        color: #07090f;
+        border: none;
+        border-radius: 40px;
+        padding: .8rem 1.8rem;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 600;
+        font-size: .88rem;
+        cursor: pointer;
+        transition: background .2s, transform .15s;
+        white-space: nowrap;
+    }
+
+    .hp-search__btn:hover {
+        background: #25bfac;
+        transform: translateY(-1px);
+    }
+
+    /* ══════════════════════════════════════════
+   STATS
+══════════════════════════════════════════ */
+    .hp-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .hp-stats__item {
+        padding: 2.8rem 1rem;
+        text-align: center;
+        border-right: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+        transition: background var(--transition);
+    }
+
+    .hp-stats__item:last-child {
+        border-right: none;
+    }
+
+    .hp-stats__item::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 2px;
+        background: var(--gold);
+        transition: width var(--transition);
+    }
+
+    .hp-stats__item:hover::before {
+        width: 60%;
+    }
+
+    .hp-stats__item:hover {
+        background: var(--surface);
+    }
+
+    .hp-stats__icon {
+        font-size: 1.4rem;
+        color: var(--gold);
+        margin-bottom: .7rem;
+    }
+
+    .hp-stats__num {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1;
+        margin-bottom: .3rem;
+    }
+
+    .hp-stats__label {
+        font-size: .75rem;
+        font-weight: 500;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+
+    /* ══════════════════════════════════════════
+   SECTION LAYOUT HELPERS
+══════════════════════════════════════════ */
+    .hp-section {
+        padding: 6rem 4vw;
+    }
+
+    .hp-section--dark {
+        background: var(--surface);
+    }
+
+    .section-label {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        font-size: .72rem;
+        font-weight: 600;
+        letter-spacing: .15em;
+        text-transform: uppercase;
+        color: var(--teal);
+        margin-bottom: .9rem;
+    }
+
+    .section-label::before {
+        content: '';
+        width: 20px;
+        height: 1.5px;
+        background: var(--teal);
+    }
+
+    .section-heading {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(2rem, 4vw, 3.4rem);
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 1rem;
+        line-height: 1.1;
+    }
+
+    .section-sub {
+        font-size: 1rem;
+        color: var(--muted);
+        font-weight: 300;
+        line-height: 1.75;
+        max-width: 520px;
+    }
+
+    /* ══════════════════════════════════════════
+   HOW IT WORKS
+══════════════════════════════════════════ */
+    .hp-steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 1.5rem;
+        margin-top: 3.5rem;
+    }
+
+    .hp-step {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 2rem 1.6rem;
+        position: relative;
+        overflow: hidden;
+        transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+    .hp-step:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, .35);
+    }
+
+    .hp-step__num {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 5rem;
+        font-weight: 700;
+        color: rgba(201, 168, 76, .08);
+        position: absolute;
+        top: -.5rem;
+        right: .8rem;
+        line-height: 1;
+        pointer-events: none;
+    }
+
+    .hp-step__icon {
+        width: 44px;
+        height: 44px;
+        background: rgba(201, 168, 76, .12);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--gold);
+        font-size: 1.15rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .hp-step h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: .5rem;
+        color: var(--text);
+    }
+
+    .hp-step p {
+        font-size: .88rem;
+        color: var(--muted);
+        line-height: 1.7;
+    }
+
+    /* ══════════════════════════════════════════
+   FEATURED EVENTS
+══════════════════════════════════════════ */
+    .hp-events__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+        margin-top: 3rem;
+    }
+
+    .ev-card {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform var(--transition), box-shadow var(--transition);
+    }
+
+    .ev-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 24px 48px rgba(0, 0, 0, .45);
+    }
+
+    .ev-card__img-wrap {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ev-card__img {
+        width: 100%;
+        height: 210px;
+        object-fit: cover;
+        display: block;
+        transition: transform .5s ease;
+    }
+
+    .ev-card:hover .ev-card__img {
+        transform: scale(1.05);
+    }
+
+    .ev-card__badge {
+        position: absolute;
+        top: .85rem;
+        left: .85rem;
+        background: var(--gold);
+        color: #07090f;
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        padding: .28rem .7rem;
+        border-radius: 40px;
+    }
+
+    .ev-card__body {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .ev-card__title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: .5rem;
+    }
+
+    .ev-card__desc {
+        font-size: .86rem;
+        color: var(--muted);
+        line-height: 1.65;
+        flex: 1;
+        margin-bottom: 1rem;
+    }
+
+    .ev-card__meta {
+        display: flex;
+        align-items: center;
+        gap: .45rem;
+        font-size: .8rem;
+        color: var(--muted);
+        margin-bottom: 1.1rem;
+    }
+
+    .ev-card__meta i {
+        color: var(--teal);
+    }
+
+    .ev-card__link {
+        display: block;
+        text-align: center;
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: .65rem 1rem;
+        border-radius: 40px;
+        font-size: .88rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background .2s, border-color .2s, color .2s;
+    }
+
+    .ev-card__link:hover {
+        background: var(--gold);
+        border-color: var(--gold);
+        color: #07090f;
+    }
+
+    .hp-events__empty {
+        color: var(--muted);
+        text-align: center;
+        grid-column: 1/-1;
+        padding: 3rem;
+    }
+
+    /* ══════════════════════════════════════════
+   FEATURES / WHY US
+══════════════════════════════════════════ */
+    .hp-features {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 5rem;
+        align-items: center;
+    }
+
+    .hp-features__list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.8rem;
+        margin-top: 2.5rem;
+    }
+
+    .feat-item {
+        display: flex;
+        gap: 1.1rem;
+        align-items: flex-start;
+    }
+
+    .feat-item__icon {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+        background: rgba(45, 212, 192, .1);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--teal);
+        font-size: 1rem;
+        margin-top: .1rem;
+    }
+
+    .feat-item__text h4 {
+        font-size: .96rem;
+        font-weight: 600;
+        margin-bottom: .3rem;
+        color: var(--text);
+    }
+
+    .feat-item__text p {
+        font-size: .86rem;
+        color: var(--muted);
+        line-height: 1.65;
+    }
+
+    .hp-features__visual {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+    }
+
+    .hp-features__visual img {
+        width: 100%;
+        display: block;
+        filter: brightness(.7) saturate(.9);
+    }
+
+    .hp-features__overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(7, 9, 15, .6) 0%, transparent 60%);
+    }
+
+    .hp-features__chip {
+        position: absolute;
+        bottom: 1.4rem;
+        left: 1.4rem;
+        background: rgba(7, 9, 15, .85);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: .8rem;
+    }
+
+    .hp-features__chip i {
+        font-size: 1.5rem;
+        color: var(--gold);
+    }
+
+    .hp-features__chip strong {
+        display: block;
+        font-size: .92rem;
+        color: var(--text);
+    }
+
+    .hp-features__chip span {
+        font-size: .75rem;
+        color: var(--muted);
+    }
+
+    /* ══════════════════════════════════════════
+   TESTIMONIALS
+══════════════════════════════════════════ */
+    .hp-testimonials {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.4rem;
+        margin-top: 3rem;
+    }
+
+    .testi-card {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.8rem;
+        position: relative;
+        transition: transform var(--transition);
+    }
+
+    .testi-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .testi-card__quote {
+        font-size: 2.5rem;
+        font-family: 'Cormorant Garamond', serif;
+        color: var(--gold);
+        line-height: 1;
+        margin-bottom: .6rem;
+    }
+
+    .testi-card__text {
+        font-size: .88rem;
+        color: var(--muted);
+        line-height: 1.7;
+        margin-bottom: 1.4rem;
+        font-style: italic;
+    }
+
+    .testi-card__author {
+        display: flex;
+        align-items: center;
+        gap: .8rem;
+    }
+
+    .testi-card__avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--gold), var(--teal));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: .9rem;
+        color: #07090f;
+        flex-shrink: 0;
+    }
+
+    .testi-card__name {
+        font-size: .88rem;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .testi-card__role {
+        font-size: .76rem;
+        color: var(--muted);
+    }
+
+    .testi-stars {
+        color: var(--gold);
+        font-size: .75rem;
+        margin-bottom: .7rem;
+        letter-spacing: .08em;
+    }
+
+    /* ══════════════════════════════════════════
+   CTA BANNER
+══════════════════════════════════════════ */
+    .hp-cta {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #0b0e18 0%, #151b10 50%, #0a0d17 100%);
+        text-align: center;
+        padding: 7rem 4vw;
+        border-top: 1px solid var(--border);
+    }
+
+    .hp-cta::before {
+        content: '';
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        top: -250px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(201, 168, 76, .14) 0%, transparent 70%);
+    }
+
+    .hp-cta__label {
+        font-size: .75rem;
+        font-weight: 600;
+        letter-spacing: .15em;
+        text-transform: uppercase;
+        color: var(--teal);
+        margin-bottom: 1rem;
+        position: relative;
+    }
+
+    .hp-cta h2 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 1rem;
+        position: relative;
+        line-height: 1.1;
+    }
+
+    .hp-cta h2 .gold {
+        color: var(--gold);
+    }
+
+    .hp-cta p {
+        font-size: 1.05rem;
+        color: var(--muted);
+        max-width: 480px;
+        margin: 0 auto 2.6rem;
+        font-weight: 300;
+        line-height: 1.7;
+        position: relative;
+    }
+
+    .hp-cta__btns {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        position: relative;
+    }
+
+    /* ══════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════ */
+    footer {
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        padding: 4rem 4vw 2rem;
+    }
+
+    .footer__grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 3rem;
+        margin-bottom: 3rem;
+    }
+
+    .footer__brand {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--gold);
+        margin-bottom: .8rem;
+    }
+
+    .footer__brand span {
+        color: var(--text);
+    }
+
+    .footer__tagline {
+        font-size: .88rem;
+        color: var(--muted);
+        line-height: 1.7;
+        max-width: 280px;
+        margin-bottom: 1.4rem;
+    }
+
+    .footer__social {
+        display: flex;
+        gap: .8rem;
+    }
+
+    .footer__social a {
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-size: .9rem;
+        text-decoration: none;
+        transition: border-color .2s, color .2s, background .2s;
+    }
+
+    .footer__social a:hover {
+        border-color: var(--gold);
+        color: var(--gold);
+        background: rgba(201, 168, 76, .08);
+    }
+
+    .footer__col h5 {
+        font-size: .78rem;
+        font-weight: 600;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: var(--text);
+        margin-bottom: 1.2rem;
+    }
+
+    .footer__col ul {
+        list-style: none;
+    }
+
+    .footer__col ul li {
+        margin-bottom: .7rem;
+    }
+
+    .footer__col ul li a {
+        font-size: .88rem;
+        color: var(--muted);
+        text-decoration: none;
+        transition: color .2s;
+    }
+
+    .footer__col ul li a:hover {
+        color: var(--gold);
+    }
+
+    .footer__bottom {
+        border-top: 1px solid var(--border);
+        padding-top: 1.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .footer__copy {
+        font-size: .8rem;
+        color: var(--muted);
+    }
+
+    .footer__copy a {
+        color: var(--gold);
+        text-decoration: none;
+    }
+
+    .footer__badges {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .footer__badge {
+        font-size: .72rem;
+        font-weight: 500;
+        letter-spacing: .08em;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        padding: .3rem .8rem;
+        border-radius: 40px;
+    }
+
+    /* ══════════════════════════════════════════
+   SCROLL ANIMATIONS
+══════════════════════════════════════════ */
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(28px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .reveal {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity .65s ease, transform .65s ease;
+    }
+
+    .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ══════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════ */
+    @media(max-width:900px) {
+        .hp-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .hp-stats__item:nth-child(2) {
+            border-right: none;
+        }
+
+        .hp-features {
+            grid-template-columns: 1fr;
+        }
+
+        .hp-features__visual {
+            display: none;
+        }
+
+        .footer__grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media(max-width:600px) {
+        .hp-topbar__nav {
+            display: none;
+        }
+
+        .hp-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .footer__grid {
+            grid-template-columns: 1fr;
+        }
+
+        .footer__bottom {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .hp-hero__btns {
+            flex-direction: column;
+        }
+
+        .hp-hero__btns .btn-gold,
+        .hp-hero__btns .btn-ghost {
+            text-align: center;
+        }
+    }
+</style>
+
+<!-- ══════════════════════════════════════════
+     TOP NAV
+══════════════════════════════════════════ -->
+<nav class="hp-topbar">
+    <a href="/" class="hp-topbar__logo">Event<span>Sphere</span></a>
+    <div class="hp-topbar__nav">
+        <a href="#">Browse Events</a>
+        <a href="#">Organizers</a>
+        <a href="#">Pricing</a>
+        <a href="#">About</a>
+    </div>
+    {% if not user.is_authenticated %}
+    <a href="{% url 'register' %}" class="hp-topbar__cta">Get Started</a>
+    {% else %}
+    <a href="/" class="hp-topbar__cta">Dashboard</a>
+    {% endif %}
+</nav>
+
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<section class="hp-hero">
+    <div class="hp-hero__photo"></div>
+
+    <div class="hp-hero__inner">
+        <div class="hp-hero__tag"><i class="bi bi-stars"></i> The Premier Event Platform</div>
+
+        <h1 class="hp-hero__title">
+            Where Every<br>
+            <span class="gold">Great Event</span><br>
+            <em>Begins.</em>
+        </h1>
+
+        <p class="hp-hero__sub">
+            Seamlessly coordinate, sell tickets, and track attendance in real‑time.
+            Elevate every attendee's experience with our intelligent, data‑driven platform built for modern event
+            creators.
         </p>
 
-        <div class="mt-5 fade-in-up delay-2">
+        <div class="hp-hero__btns">
             {% if not user.is_authenticated %}
-            <a href="{% url 'register' %}" class="btn-premium me-3 mb-3 d-inline-block text-decoration-none"
-                style="padding: 1rem 3rem; font-size: 1.1rem;">
-                Launch Your Event
-            </a>
-            <a href="{% url 'login' %}" class="btn-outline-premium mb-3 d-inline-block text-decoration-none"
-                style="padding: 1rem 3rem; font-size: 1.1rem;">
-                Access Dashboard
-            </a>
+            <a href="{% url 'register' %}" class="btn-gold">Launch Your Event &rarr;</a>
+            <a href="{% url 'login' %}" class="btn-ghost">Sign In</a>
             {% else %}
-            <a href="/" class="btn-premium me-3 mb-3 d-inline-block text-decoration-none"
-                style="padding: 1rem 3rem; font-size: 1.1rem;">
-                Go to Dashboard
-            </a>
-            <a href="{% url 'logout' %}" class="btn-outline-premium mb-3 d-inline-block text-decoration-none"
-                style="padding: 1rem 3rem; font-size: 1.1rem;">
-                Logout
-            </a>
+            <a href="/" class="btn-gold">Go to Dashboard &rarr;</a>
+            <a href="{% url 'logout' %}" class="btn-ghost">Logout</a>
             {% endif %}
         </div>
     </div>
-</div>
+</section>
 
-<!-- HERO SECTION -->
-<div class="text-white d-flex align-items-center justify-content-center text-center" style="
-    height: 80vh;
-    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
-                url('{% static " images/hero.jpg" %}'); background-size: cover; background-position: center; ">
-
-    <div>
-        <h1 class=" display-3 fw-bold">Discover Amazing Events</h1>
-    <p class="lead">Find, book, and attend events that match your passion.</p>
-
-    <!-- SEARCH BAR -->
-    <div class="mt-4 d-flex justify-content-center">
-        <form class="d-flex w-50">
-            <input type="text" class="form-control form-control-lg me-2" placeholder="Search events...">
-            <button class="btn btn-primary btn-lg">Search</button>
-        </form>
-    </div>
-
-    {% if not user.is_authenticated %}
-    <div class="mt-4">
-        <a href="{% url 'register' %}" class="btn btn-primary btn-lg me-2">Get Started</a>
-        <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">Login</a>
-    </div>
-    {% else %}
-    <a href="{% url 'attendee_dashboard' %}" class="btn btn-success btn-lg mt-4">
-        Go to Dashboard
-    </a>
-    {% endif %}
-</div>
-</div>
-
-<!-- STATS SECTION -->
-<div class="container my-5">
-    <div class="row text-center">
-
-        <div class="col-md-4">
-            <i class="bi bi-calendar-event fs-1 text-primary"></i>
-            <h2 class="fw-bold mt-2">{{ events|length }}</h2>
-            <p>Events Available</p>
-        </div>
-
-        <div class="col-md-4">
-            <i class="bi bi-people fs-1 text-success"></i>
-            <h2 class="fw-bold mt-2">500+</h2>
-            <p>Users Joined</p>
-        </div>
-
-        <div class="col-md-4">
-            <i class="bi bi-headset fs-1 text-danger"></i>
-            <h2 class="fw-bold mt-2">24/7</h2>
-            <p>Support</p>
-        </div>
-
-    </div>
-</div>
-
-<!-- FEATURED EVENTS -->
-<div class="container mb-5">
-    <h2 class="text-center mb-5 fw-bold">Featured Events</h2>
-
-    <div class="row">
-        {% for event in events %}
-        <div class="col-md-4 mb-4">
-
-            <div class="card border-0 shadow h-100 event-card">
-
-                <img src="{{ event.image.url }}" class="card-img-top" style="height:220px; object-fit:cover;"
-                    alt="{{ event.title }}">
-
-                <div class="card-body d-flex flex-column">
-
-                    <h5 class="fw-bold">{{ event.title }}</h5>
-
-                    <p class="text-muted small">
-                        {{ event.short_description|truncatechars:100 }}
-                    </p>
-
-                    <div class="mt-auto">
-
-                        <p class="mb-2">
-                            <i class="bi bi-calendar-event"></i>
-                            <strong>{{ event.date }}</strong>
-                        </p>
-
-                        <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-primary w-100">
-                            View Details
-                        </a>
-
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-        {% empty %}
-        <p class="text-center text-muted">No events available yet.</p>
+<!-- ══════════════════════════════════════════
+     MARQUEE
+══════════════════════════════════════════ -->
+<div class="hp-marquee">
+    <div class="hp-marquee__track">
+        {% for item in "12345678"|make_list %}
+        <span><i class="bi bi-check-circle-fill"></i> Real-Time Attendance Tracking</span>
+        <span><i class="bi bi-check-circle-fill"></i> Integrated Ticketing</span>
+        <span><i class="bi bi-check-circle-fill"></i> Analytics Dashboard</span>
+        <span><i class="bi bi-check-circle-fill"></i> 24/7 Support</span>
+        <span><i class="bi bi-check-circle-fill"></i> QR Code Check-In</span>
+        <span><i class="bi bi-check-circle-fill"></i> Multi-Organizer Access</span>
+        <span><i class="bi bi-check-circle-fill"></i> Custom Branding</span>
+        <span><i class="bi bi-check-circle-fill"></i> GDPR Compliant</span>
         {% endfor %}
     </div>
 </div>
 
-<!-- CTA SECTION -->
-<div class="text-white text-center p-5 rounded mb-5" style="background: linear-gradient(135deg, #0d6efd, #6610f2);">
-
-    <h2 class="fw-bold">Want to host your own event?</h2>
-    <p>Create and manage events easily with our system.</p>
-
-    {% if not user.is_authenticated %}
-    <a href="{% url 'register' %}" class="btn btn-warning btn-lg">
-        Join Now
-    </a>
-    {% else %}
-    <a href="{% url 'organizer_dashboard' %}" class="btn btn-warning btn-lg">
-        Start Creating
-    </a>
-    {% endif %}
-
+<!-- ══════════════════════════════════════════
+     SEARCH
+══════════════════════════════════════════ -->
+<div class="hp-search">
+    <form class="hp-search__wrap" method="get" action="#">
+        <input class="hp-search__input" type="text" name="q" placeholder="Search events by name, city, or category…">
+        <button class="hp-search__btn" type="submit">
+            <i class="bi bi-search me-1"></i> Search
+        </button>
+    </form>
 </div>
 
-<!-- CUSTOM STYLES -->
-<style>
-    .event-card {
-        transition: 0.3s ease;
-    }
+<!-- ══════════════════════════════════════════
+     STATS
+══════════════════════════════════════════ -->
+<div class="hp-stats reveal">
+    <div class="hp-stats__item">
+        <div class="hp-stats__icon"><i class="bi bi-calendar-event-fill"></i></div>
+        <div class="hp-stats__num">{{ events|length }}</div>
+        <div class="hp-stats__label">Live Events</div>
+    </div>
+    <div class="hp-stats__item">
+        <div class="hp-stats__icon"><i class="bi bi-people-fill"></i></div>
+        <div class="hp-stats__num">500+</div>
+        <div class="hp-stats__label">Registered Users</div>
+    </div>
+    <div class="hp-stats__item">
+        <div class="hp-stats__icon"><i class="bi bi-ticket-perforated-fill"></i></div>
+        <div class="hp-stats__num">12k+</div>
+        <div class="hp-stats__label">Tickets Issued</div>
+    </div>
+    <div class="hp-stats__item">
+        <div class="hp-stats__icon"><i class="bi bi-star-fill"></i></div>
+        <div class="hp-stats__num">4.9</div>
+        <div class="hp-stats__label">Avg. Rating</div>
+    </div>
+</div>
 
-    .event-card:hover {
-        transform: translateY(-8px);
-    }
-</style>
+<!-- ══════════════════════════════════════════
+     HOW IT WORKS
+══════════════════════════════════════════ -->
+<section class="hp-section reveal">
+    <div class="section-label">How It Works</div>
+    <h2 class="section-heading">From Idea to Sold-Out<br>in Three Steps</h2>
+
+    <div class="hp-steps">
+        <div class="hp-step reveal">
+            <div class="hp-step__num">01</div>
+            <div class="hp-step__icon"><i class="bi bi-pencil-square"></i></div>
+            <h4>Create Your Event</h4>
+            <p>Set up your event page in minutes — add a description, date, venue, ticket tiers, and custom branding
+                with our intuitive builder.</p>
+        </div>
+        <div class="hp-step reveal">
+            <div class="hp-step__num">02</div>
+            <div class="hp-step__icon"><i class="bi bi-megaphone-fill"></i></div>
+            <h4>Promote &amp; Sell</h4>
+            <p>Share your event link, embed tickets on your site, and leverage our built-in attendee network to reach
+                the right audience fast.</p>
+        </div>
+        <div class="hp-step reveal">
+            <div class="hp-step__num">03</div>
+            <div class="hp-step__icon"><i class="bi bi-qr-code-scan"></i></div>
+            <h4>Check In &amp; Analyze</h4>
+            <p>Use QR-code scanning for lightning-fast entry, then dive into real-time analytics to measure engagement
+                and improve your next event.</p>
+        </div>
+        <div class="hp-step reveal">
+            <div class="hp-step__num">04</div>
+            <div class="hp-step__icon"><i class="bi bi-graph-up-arrow"></i></div>
+            <h4>Grow With Insights</h4>
+            <p>Post-event reports, attendee demographics, and revenue breakdowns help you make smarter decisions every
+                time you host.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     FEATURED EVENTS
+══════════════════════════════════════════ -->
+<section class="hp-section hp-section--dark reveal">
+    <div class="section-label">What's On</div>
+    <h2 class="section-heading">Featured Events</h2>
+
+    <div class="hp-events__grid">
+        {% for event in events %}
+        <article class="ev-card reveal">
+            <div class="ev-card__img-wrap">
+                <img src="{{ event.image.url }}" class="ev-card__img" alt="{{ event.title }}">
+                <div class="ev-card__badge">Featured</div>
+            </div>
+            <div class="ev-card__body">
+                <h3 class="ev-card__title">{{ event.title }}</h3>
+                <p class="ev-card__desc">{{ event.short_description|truncatechars:110 }}</p>
+                <div class="ev-card__meta">
+                    <i class="bi bi-calendar3"></i>
+                    <strong>{{ event.date }}</strong>
+                </div>
+                <a href="{% url 'event_detail' event.id %}" class="ev-card__link">View Details &rarr;</a>
+            </div>
+        </article>
+        {% empty %}
+        <p class="hp-events__empty">No events available yet — check back soon!</p>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     FEATURES / WHY CHOOSE US
+══════════════════════════════════════════ -->
+<section class="hp-section reveal">
+    <div class="hp-features">
+        <div>
+            <div class="section-label">Why EventSphere</div>
+            <h2 class="section-heading">Everything You Need<br>to Run the Show</h2>
+            <p class="section-sub">A complete toolkit designed for professional event organisers, from intimate
+                workshops to large-scale conferences.</p>
+
+            <div class="hp-features__list">
+                <div class="feat-item reveal">
+                    <div class="feat-item__icon"><i class="bi bi-lightning-charge-fill"></i></div>
+                    <div class="feat-item__text">
+                        <h4>Real-Time Attendance Tracking</h4>
+                        <p>Monitor check-ins live as they happen, with instant capacity alerts and detailed seat maps.
+                        </p>
+                    </div>
+                </div>
+                <div class="feat-item reveal">
+                    <div class="feat-item__icon"><i class="bi bi-shield-check-fill"></i></div>
+                    <div class="feat-item__text">
+                        <h4>Secure Ticketing &amp; Payments</h4>
+                        <p>End-to-end encrypted transactions with support for Stripe, M-Pesa, and major card networks.
+                        </p>
+                    </div>
+                </div>
+                <div class="feat-item reveal">
+                    <div class="feat-item__icon"><i class="bi bi-bar-chart-line-fill"></i></div>
+                    <div class="feat-item__text">
+                        <h4>Advanced Analytics</h4>
+                        <p>Deep-dive dashboards covering revenue, engagement, referral sources, and attendee behaviour.
+                        </p>
+                    </div>
+                </div>
+                <div class="feat-item reveal">
+                    <div class="feat-item__icon"><i class="bi bi-brush-fill"></i></div>
+                    <div class="feat-item__text">
+                        <h4>Custom Branding</h4>
+                        <p>White-label your event pages and tickets with your own colours, logo, and domain.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hp-features__visual">
+            <img src="{% static 'images/hero.jpg' %}" alt="Platform preview">
+            <div class="hp-features__overlay"></div>
+            <div class="hp-features__chip">
+                <i class="bi bi-graph-up"></i>
+                <div>
+                    <strong>Revenue up 43%</strong>
+                    <span>vs. previous platform</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     TESTIMONIALS
+══════════════════════════════════════════ -->
+<section class="hp-section hp-section--dark reveal">
+    <div class="section-label">Testimonials</div>
+    <h2 class="section-heading">Loved by Event Creators</h2>
+
+    <div class="hp-testimonials">
+        <div class="testi-card reveal">
+            <div class="testi-stars">★★★★★</div>
+            <div class="testi-card__quote">"</div>
+            <p class="testi-card__text">EventSphere transformed how we manage our annual tech summit. Check-in went from
+                40 minutes of chaos to under 5 minutes with QR scanning.</p>
+            <div class="testi-card__author">
+                <div class="testi-card__avatar">AK</div>
+                <div>
+                    <div class="testi-card__name">Amara Kone</div>
+                    <div class="testi-card__role">Tech Summit Organiser, Nairobi</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="testi-card reveal">
+            <div class="testi-stars">★★★★★</div>
+            <div class="testi-card__quote">"</div>
+            <p class="testi-card__text">The analytics dashboard alone is worth it. I finally understand who attends my
+                workshops and can market to them properly.</p>
+            <div class="testi-card__author">
+                <div class="testi-card__avatar">JM</div>
+                <div>
+                    <div class="testi-card__name">James Mwangi</div>
+                    <div class="testi-card__role">Corporate Trainer, Kampala</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="testi-card reveal">
+            <div class="testi-stars">★★★★★</div>
+            <div class="testi-card__quote">"</div>
+            <p class="testi-card__text">We sold out our fundraising gala in 48 hours using EventSphere's built-in
+                promotion tools. Phenomenal platform.</p>
+            <div class="testi-card__author">
+                <div class="testi-card__avatar">FO</div>
+                <div>
+                    <div class="testi-card__name">Fatuma Omar</div>
+                    <div class="testi-card__role">NGO Events Lead, Mombasa</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     CTA BANNER
+══════════════════════════════════════════ -->
+<section class="hp-cta reveal">
+    <div class="hp-cta__label">Start Today — It's Free</div>
+    <h2>Ready to Create Your<br><span class="gold">Next Great Event?</span></h2>
+    <p>Join over 500 organisers who trust EventSphere to deliver seamless, memorable experiences every time.</p>
+    <div class="hp-cta__btns">
+        {% if not user.is_authenticated %}
+        <a href="{% url 'register' %}" class="btn-gold">Create Free Account &rarr;</a>
+        <a href="{% url 'login' %}" class="btn-ghost">Sign In</a>
+        {% else %}
+        <a href="{% url 'organizer_dashboard' %}" class="btn-gold">Go to Organiser Dashboard &rarr;</a>
+        {% endif %}
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer>
+    <div class="footer__grid">
+
+        <!-- Brand col -->
+        <div>
+            <div class="footer__brand">Event<span>Sphere</span></div>
+            <p class="footer__tagline">
+                The intelligent event management platform built for creators who care about every detail.
+            </p>
+            <div class="footer__social">
+                <a href="#" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+                <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+            </div>
+        </div>
+
+        <!-- Product col -->
+        <div class="footer__col">
+            <h5>Product</h5>
+            <ul>
+                <li><a href="#">Browse Events</a></li>
+                <li><a href="#">Create Event</a></li>
+                <li><a href="#">Ticketing</a></li>
+                <li><a href="#">Analytics</a></li>
+                <li><a href="#">Integrations</a></li>
+            </ul>
+        </div>
+
+        <!-- Company col -->
+        <div class="footer__col">
+            <h5>Company</h5>
+            <ul>
+                <li><a href="#">About Us</a></li>
+                <li><a href="#">Blog</a></li>
+                <li><a href="#">Careers</a></li>
+                <li><a href="#">Press Kit</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </div>
+
+        <!-- Legal col -->
+        <div class="footer__col">
+            <h5>Legal</h5>
+            <ul>
+                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#">Terms of Service</a></li>
+                <li><a href="#">Cookie Policy</a></li>
+                <li><a href="#">Refund Policy</a></li>
+                <li><a href="#">GDPR</a></li>
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="footer__bottom">
+        <p class="footer__copy">
+            &copy; {% now "Y" %} <a href="/">EventSphere</a>. All rights reserved. Built with <i
+                class="bi bi-heart-fill" style="color:var(--gold);font-size:.7rem;"></i> for event creators everywhere.
+        </p>
+        <div class="footer__badges">
+            <span class="footer__badge">SSL Secured</span>
+            <span class="footer__badge">GDPR Compliant</span>
+            <span class="footer__badge">99.9% Uptime</span>
+        </div>
+    </div>
+</footer>
+
+<!-- ══════════════════════════════════════════
+     SCROLL REVEAL SCRIPT
+══════════════════════════════════════════ -->
+<script>
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry, i) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => entry.target.classList.add('visible'), i * 70);
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // Animate stat numbers on scroll
+    const statNums = document.querySelectorAll('.hp-stats__num');
+    const numObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const el = entry.target;
+                const raw = el.textContent.replace(/[^0-9.]/g, '');
+                const suffix = el.textContent.replace(/[0-9.]/g, '');
+                const target = parseFloat(raw);
+                if (!isNaN(target)) {
+                    let start = 0;
+                    const step = target / 40;
+                    const timer = setInterval(() => {
+                        start = Math.min(start + step, target);
+                        el.textContent = (Number.isInteger(target) ? Math.round(start) : start.toFixed(1)) + suffix;
+                        if (start >= target) clearInterval(timer);
+                    }, 30);
+                }
+                numObserver.unobserve(el);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    statNums.forEach(el => numObserver.observe(el));
+</script>
 
 {% endblock content %}

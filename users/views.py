@@ -13,7 +13,9 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 from django.shortcuts import get_object_or_404
 
-# If you have events app
+from events.models import Event
+from tickets.models import Ticket 
+from django.utils.timezone import now
 from events.models import Event
 
 User = get_user_model()
@@ -175,6 +177,22 @@ def approve_event(request, event_id):
 
 
 @login_required
+def download_report(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="events_report.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Title', 'Organizer', 'Date'])
+
+    events = Event.objects.all()
+
+    for event in events:
+        writer.writerow([event.title, event.organizer.username, event.start_date])
+
+    return response
+
+
+@login_required
 def generate_report(request):
     if request.user.role != "admin":
         return HttpResponseForbidden("Unauthorized")
@@ -246,8 +264,18 @@ def organizer_dashboard(request):
 
 @login_required
 def attendee_dashboard(request):
-    return render(request, "dashboards/attendee_dashboard.html")
+    upcoming_events = Event.objects.filter(start_date__gte=now()).order_by('start_date')[:6]
 
+    tickets = Ticket.objects.filter(user=request.user) if 'Ticket' in globals() else []
+
+    context = {
+        'upcoming_events': upcoming_events,
+        'tickets': tickets,
+        'tickets_count': len(tickets),
+        'attended_count': 0, 
+    }
+
+    return render(request, "dashboards/attendee_dashboard.html", context)
 
 @login_required
 def profile(request):
