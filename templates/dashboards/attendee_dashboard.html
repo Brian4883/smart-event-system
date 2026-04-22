@@ -57,7 +57,7 @@
                     <div class="card h-100 shadow-sm">
 
                         {% if event.image %}
-                        <img src="{{ event.image.url }}" class="card-img-top" style="height:180px; object-fit:cover;">
+                        {% if event.image %}<img src="{{ event.image.url }}" class="card-img-top" style="height:180px; object-fit:cover;">{% endif %}
                         {% endif %}
 
                         <div class="card-body">

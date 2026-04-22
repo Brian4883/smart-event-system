@@ -1280,7 +1280,7 @@
         {% for event in events %}
         <article class="ev-card reveal">
             <div class="ev-card__img-wrap">
-                <img src="{{ event.image.url }}" class="ev-card__img" alt="{{ event.title }}">
+                {% if event.image %}<img src="{{ event.image.url }}" class="ev-card__img" alt="{{ event.title }}">{% endif %}
                 <div class="ev-card__badge">Featured</div>
             </div>
             <div class="ev-card__body">

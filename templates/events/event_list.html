@@ -1,37 +1,816 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% block title %}Browse Events — EventSphere{% endblock %}
 
 {% block content %}
 
-<h2>Available Events</h2>
+<style>
+    /* ══════════════════════════════════════════
+     PAGE SHELL
+  ══════════════════════════════════════════ */
+    .events-page {
+        padding: .5rem 0 4rem;
+    }
 
-<div class="event-container">
+    /* ══════════════════════════════════════════
+     PAGE HEADER
+  ══════════════════════════════════════════ */
+    .events-hero {
+        position: relative;
+        padding: 3.5rem 0 3rem;
+        margin-bottom: 2.5rem;
+        overflow: hidden;
+    }
 
-    {% for event in events %}
+    .events-hero::before {
+        content: '';
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        top: -260px;
+        right: -100px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(201, 168, 76, .12) 0%, transparent 70%);
+        pointer-events: none;
+        animation: blobPulse 10s ease-in-out infinite alternate;
+    }
 
-    <div class="event-card">
+    .events-hero::after {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        bottom: -150px;
+        left: -60px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(45, 212, 192, .08) 0%, transparent 70%);
+        pointer-events: none;
+        animation: blobPulse 8s ease-in-out infinite alternate-reverse;
+    }
 
-        <h3>{{ event.title }}</h3>
+    @keyframes blobPulse {
+        from {
+            transform: scale(1);
+            opacity: 1;
+        }
 
-        <p>{{ event.description }}</p>
+        to {
+            transform: scale(1.2);
+            opacity: .6;
+        }
+    }
 
-        <p><strong>Location:</strong> {{ event.location }}</p>
+    .events-hero__inner {
+        position: relative;
+        z-index: 2;
+        animation: fadeUp .6s ease both;
+    }
 
-        <p><strong>Date:</strong> {{ event.start_date }}</p>
+    .page-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        font-size: .72rem;
+        font-weight: 600;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--teal);
+        margin-bottom: .8rem;
+    }
 
-        <p><strong>Price:</strong> ${{ event.price }}</p>
+    .page-eyebrow::before {
+        content: '';
+        width: 20px;
+        height: 1.5px;
+        background: var(--teal);
+        display: inline-block;
+    }
 
-        <a href="{% url 'pay_ticket' event.id %}" class="btn btn-success">
-            Buy Ticket
-        </a>
+    .page-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(2rem, 4vw, 3rem);
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: .5rem;
+        line-height: 1.1;
+    }
 
+    .page-title .gold {
+        color: var(--gold);
+    }
+
+    .page-sub {
+        font-size: .95rem;
+        color: var(--muted);
+        font-weight: 300;
+        max-width: 480px;
+        line-height: 1.7;
+    }
+
+    /* result count pill */
+    .events-count {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 40px;
+        padding: .35rem 1rem;
+        font-size: .78rem;
+        font-weight: 500;
+        color: var(--muted);
+        margin-top: 1.2rem;
+        animation: fadeUp .6s .2s ease both;
+    }
+
+    .events-count span {
+        color: var(--gold);
+        font-weight: 700;
+    }
+
+    /* ══════════════════════════════════════════
+     SEARCH & FILTER BAR
+  ══════════════════════════════════════════ */
+    .events-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem 1.4rem;
+        margin-bottom: 2.5rem;
+        animation: fadeUp .6s .3s ease both;
+    }
+
+    .toolbar-search {
+        flex: 1;
+        min-width: 220px;
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .toolbar-search i {
+        position: absolute;
+        left: 1rem;
+        color: var(--muted);
+        font-size: .9rem;
+        pointer-events: none;
+    }
+
+    .toolbar-input {
+        width: 100%;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: .72rem 1rem .72rem 2.6rem;
+        color: var(--text);
+        font-family: 'Outfit', sans-serif;
+        font-size: .88rem;
+        outline: none;
+        transition: border-color .25s, box-shadow .25s;
+    }
+
+    .toolbar-input::placeholder {
+        color: var(--muted);
+    }
+
+    .toolbar-input:focus {
+        border-color: var(--teal);
+        box-shadow: 0 0 0 3px rgba(45, 212, 192, .1);
+    }
+
+    .toolbar-select {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: .72rem 2.2rem .72rem 1rem;
+        color: var(--text);
+        font-family: 'Outfit', sans-serif;
+        font-size: .88rem;
+        outline: none;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right .8rem center;
+        transition: border-color .2s;
+        min-width: 140px;
+    }
+
+    .toolbar-select:focus {
+        border-color: var(--teal);
+    }
+
+    .toolbar-select option {
+        background: var(--surface2);
+    }
+
+    /* view toggle */
+    .toolbar-views {
+        display: flex;
+        gap: .3rem;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: .25rem;
+    }
+
+    .view-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--muted);
+        padding: .4rem .6rem;
+        border-radius: 6px;
+        font-size: .95rem;
+        transition: background .2s, color .2s;
+    }
+
+    .view-btn.active,
+    .view-btn:hover {
+        background: var(--surface);
+        color: var(--gold);
+    }
+
+    /* ══════════════════════════════════════════
+     EVENTS GRID
+  ══════════════════════════════════════════ */
+    .events-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.6rem;
+    }
+
+    .events-grid.list-view {
+        grid-template-columns: 1fr;
+    }
+
+    /* ── EVENT CARD ── */
+    .ev-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+        animation: cardReveal .5s ease both;
+        position: relative;
+    }
+
+    .ev-card:hover {
+        transform: translateY(-7px);
+        box-shadow: 0 24px 56px rgba(0, 0, 0, .5);
+        border-color: rgba(201, 168, 76, .25);
+    }
+
+    /* staggered card entrance */
+    .ev-card:nth-child(1) {
+        animation-delay: .1s;
+    }
+
+    .ev-card:nth-child(2) {
+        animation-delay: .18s;
+    }
+
+    .ev-card:nth-child(3) {
+        animation-delay: .26s;
+    }
+
+    .ev-card:nth-child(4) {
+        animation-delay: .34s;
+    }
+
+    .ev-card:nth-child(5) {
+        animation-delay: .42s;
+    }
+
+    .ev-card:nth-child(6) {
+        animation-delay: .50s;
+    }
+
+    .ev-card:nth-child(7) {
+        animation-delay: .58s;
+    }
+
+    .ev-card:nth-child(8) {
+        animation-delay: .66s;
+    }
+
+    .ev-card:nth-child(9) {
+        animation-delay: .74s;
+    }
+
+    @keyframes cardReveal {
+        from {
+            opacity: 0;
+            transform: translateY(24px) scale(.98);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* image */
+    .ev-card__img-wrap {
+        position: relative;
+        overflow: hidden;
+        height: 200px;
+    }
+
+    .ev-card__img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform .5s ease;
+    }
+
+    .ev-card:hover .ev-card__img {
+        transform: scale(1.07);
+    }
+
+    /* image overlay gradient */
+    .ev-card__img-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(7, 9, 15, .6) 0%, transparent 50%);
+    }
+
+    /* price badge on image */
+    .ev-card__price-badge {
+        position: absolute;
+        top: .85rem;
+        right: .85rem;
+        background: rgba(7, 9, 15, .8);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--border);
+        color: var(--gold);
+        font-size: .82rem;
+        font-weight: 700;
+        padding: .3rem .75rem;
+        border-radius: 40px;
+        font-family: 'Outfit', sans-serif;
+    }
+
+    /* category badge */
+    .ev-card__cat {
+        position: absolute;
+        top: .85rem;
+        left: .85rem;
+        background: var(--teal);
+        color: #07090f;
+        font-size: .65rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        padding: .28rem .65rem;
+        border-radius: 40px;
+    }
+
+    /* card body */
+    .ev-card__body {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+    }
+
+    .ev-card__title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1.2;
+        margin: 0;
+    }
+
+    .ev-card__desc {
+        font-size: .86rem;
+        color: var(--muted);
+        line-height: 1.65;
+        flex: 1;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* meta row */
+    .ev-card__meta {
+        display: flex;
+        flex-direction: column;
+        gap: .4rem;
+        margin-top: .4rem;
+    }
+
+    .ev-meta-item {
+        display: flex;
+        align-items: center;
+        gap: .55rem;
+        font-size: .8rem;
+        color: var(--muted);
+    }
+
+    .ev-meta-item i {
+        font-size: .85rem;
+        width: 16px;
+        text-align: center;
+        flex-shrink: 0;
+        color: var(--teal);
+    }
+
+    .ev-meta-item strong {
+        color: var(--text);
+        font-weight: 500;
+    }
+
+    /* divider */
+    .ev-card__divider {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: .8rem 0;
+    }
+
+    /* footer */
+    .ev-card__footer {
+        padding: 0 1.5rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+    }
+
+    .btn-buy {
+        flex: 1;
+        background: var(--gold);
+        color: #07090f;
+        border: none;
+        border-radius: 40px;
+        padding: .72rem 1rem;
+        font-family: 'Outfit', sans-serif;
+        font-size: .88rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        text-align: center;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        cursor: pointer;
+        transition: background .2s, transform .15s, box-shadow .2s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-buy::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, .18), transparent);
+        opacity: 0;
+        transition: opacity .2s;
+    }
+
+    .btn-buy:hover {
+        background: var(--gold-lt);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(201, 168, 76, .3);
+        color: #07090f;
+    }
+
+    .btn-buy:hover::after {
+        opacity: 1;
+    }
+
+    .btn-details {
+        width: 40px;
+        height: 40px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-size: .95rem;
+        text-decoration: none;
+        flex-shrink: 0;
+        transition: border-color .2s, color .2s, background .2s;
+    }
+
+    .btn-details:hover {
+        border-color: var(--teal);
+        color: var(--teal);
+        background: rgba(45, 212, 192, .07);
+    }
+
+    /* ══════════════════════════════════════════
+     LIST VIEW variant
+  ══════════════════════════════════════════ */
+    .events-grid.list-view .ev-card {
+        flex-direction: row;
+        height: 160px;
+    }
+
+    .events-grid.list-view .ev-card__img-wrap {
+        width: 200px;
+        min-width: 200px;
+        height: 100%;
+        border-radius: 0;
+    }
+
+    .events-grid.list-view .ev-card__body {
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1.2rem 1.4rem;
+    }
+
+    .events-grid.list-view .ev-card__title {
+        flex: 1;
+        min-width: 160px;
+    }
+
+    .events-grid.list-view .ev-card__desc {
+        display: none;
+    }
+
+    .events-grid.list-view .ev-card__meta {
+        flex-direction: row;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+        margin: 0;
+    }
+
+    .events-grid.list-view .ev-card__divider {
+        display: none;
+    }
+
+    .events-grid.list-view .ev-card__footer {
+        padding: 0 1.4rem 0 0;
+        flex-direction: column;
+        gap: .5rem;
+        justify-content: center;
+        min-width: 130px;
+    }
+
+    .events-grid.list-view .btn-buy {
+        padding: .6rem .9rem;
+        font-size: .8rem;
+    }
+
+    .events-grid.list-view .btn-details {
+        width: 36px;
+        height: 36px;
+        font-size: .85rem;
+    }
+
+    /* ══════════════════════════════════════════
+     EMPTY STATE
+  ══════════════════════════════════════════ */
+    .events-empty {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 5rem 1rem;
+        animation: fadeUp .6s ease both;
+    }
+
+    .events-empty__icon {
+        width: 70px;
+        height: 70px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: var(--muted);
+        margin-bottom: 1.4rem;
+    }
+
+    .events-empty h3 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: .5rem;
+    }
+
+    .events-empty p {
+        font-size: .92rem;
+        color: var(--muted);
+        max-width: 360px;
+        margin: 0 auto;
+    }
+
+    /* ══════════════════════════════════════════
+     ANIMATIONS
+  ══════════════════════════════════════════ */
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ══════════════════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════════════════ */
+    @media (max-width: 600px) {
+        .events-grid.list-view .ev-card {
+            flex-direction: column;
+            height: auto;
+        }
+
+        .events-grid.list-view .ev-card__img-wrap {
+            width: 100%;
+            height: 180px;
+        }
+
+        .events-grid.list-view .ev-card__footer {
+            padding: 0 1.2rem 1.2rem;
+            flex-direction: row;
+        }
+
+        .toolbar-views {
+            display: none;
+        }
+    }
+</style>
+
+<div class="events-page">
+
+    <!-- ── PAGE HEADER ── -->
+    <div class="events-hero">
+        <div class="events-hero__inner">
+            <div class="page-eyebrow">What's On</div>
+            <h1 class="page-title">Discover <span class="gold">Amazing</span> Events</h1>
+            <p class="page-sub">Find, book, and attend events that match your passion — all in one place.</p>
+            <div class="events-count">
+                <i class="bi bi-collection"></i>
+                Showing <span>{{ events|length }}</span> event{{ events|length|pluralize }}
+            </div>
+        </div>
     </div>
 
-    {% empty %}
+    <!-- ── TOOLBAR ── -->
+    <div class="events-toolbar">
+        <div class="toolbar-search">
+            <i class="bi bi-search"></i>
+            <input class="toolbar-input" type="text" id="searchInput" placeholder="Search events by name, location…">
+        </div>
 
-    <p>No events available.</p>
+        <select class="toolbar-select" id="sortSelect">
+            <option value="">Sort by: Default</option>
+            <option value="price-asc">Price: Low → High</option>
+            <option value="price-desc">Price: High → Low</option>
+            <option value="date-asc">Date: Soonest first</option>
+        </select>
 
-    {% endfor %}
+        <div class="toolbar-views">
+            <button class="view-btn active" id="gridViewBtn" title="Grid view">
+                <i class="bi bi-grid-3x3-gap"></i>
+            </button>
+            <button class="view-btn" id="listViewBtn" title="List view">
+                <i class="bi bi-list-ul"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ── EVENTS GRID ── -->
+    <div class="events-grid" id="eventsGrid">
+
+        {% for event in events %}
+        <article class="ev-card" data-title="{{ event.title|lower }}" data-location="{{ event.location|lower }}"
+            data-price="{{ event.price }}" data-date="{{ event.start_date }}">
+
+            <!-- image -->
+            <div class="ev-card__img-wrap">
+                {% if event.image %}
+                {% if event.image %}<img src="{{ event.image.url }}" class="ev-card__img" alt="{{ event.title }}">{% endif %}
+                {% else %}
+                <div class="ev-card__img" style="background: linear-gradient(135deg, var(--surface2), var(--surface));
+               display:flex; align-items:center; justify-content:center;">
+                    <i class="bi bi-calendar-event" style="font-size:3rem; color:var(--border);"></i>
+                </div>
+                {% endif %}
+                <div class="ev-card__img-overlay"></div>
+                <div class="ev-card__price-badge">
+                    {% if event.price == 0 %}Free{% else %}${{ event.price }}{% endif %}
+                </div>
+                <div class="ev-card__cat">Event</div>
+            </div>
+
+            <!-- body -->
+            <div class="ev-card__body">
+                <h2 class="ev-card__title">{{ event.title }}</h2>
+                <p class="ev-card__desc">{{ event.description }}</p>
+
+                <hr class="ev-card__divider">
+
+                <div class="ev-card__meta">
+                    <div class="ev-meta-item">
+                        <i class="bi bi-geo-alt"></i>
+                        <strong>{{ event.location }}</strong>
+                    </div>
+                    <div class="ev-meta-item">
+                        <i class="bi bi-calendar3"></i>
+                        <strong>{{ event.start_date }}</strong>
+                    </div>
+                    <div class="ev-meta-item">
+                        <i class="bi bi-tag"></i>
+                        <strong>
+                            {% if event.price == 0 %}Free Entry{% else %}${{ event.price }} / ticket{% endif %}
+                        </strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- footer -->
+            <div class="ev-card__footer">
+                <a href="#" class="btn-buy">
+                    <i class="bi bi-ticket-perforated"></i>
+                    {% if event.price == 0 %}Register Free{% else %}Buy Ticket{% endif %}
+                </a>
+                <a href="{% url 'event_detail' event.id %}" class="btn-details" title="View details">
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+
+        </article>
+        {% empty %}
+
+        <div class="events-empty">
+            <div class="events-empty__icon">
+                <i class="bi bi-calendar-x"></i>
+            </div>
+            <h3>No Events Yet</h3>
+            <p>There are no events available right now. Check back soon — exciting things are coming!</p>
+        </div>
+
+        {% endfor %}
+    </div>
 
 </div>
+
+<script>
+    const grid = document.getElementById('eventsGrid');
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+    const gridBtn = document.getElementById('gridViewBtn');
+    const listBtn = document.getElementById('listViewBtn');
+
+    /* ── VIEW TOGGLE ── */
+    gridBtn.addEventListener('click', () => {
+        grid.classList.remove('list-view');
+        gridBtn.classList.add('active');
+        listBtn.classList.remove('active');
+    });
+    listBtn.addEventListener('click', () => {
+        grid.classList.add('list-view');
+        listBtn.classList.add('active');
+        gridBtn.classList.remove('active');
+    });
+
+    /* ── LIVE SEARCH FILTER ── */
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.toLowerCase().trim();
+        document.querySelectorAll('.ev-card').forEach(card => {
+            const title = card.dataset.title || '';
+            const location = card.dataset.location || '';
+            const match = title.includes(query) || location.includes(query);
+            card.style.display = match ? '' : 'none';
+        });
+    });
+
+    /* ── SORT ── */
+    sortSelect.addEventListener('change', () => {
+        const val = sortSelect.value;
+        const cards = [...document.querySelectorAll('.ev-card')];
+
+        cards.sort((a, b) => {
+            if (val === 'price-asc') return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+            if (val === 'price-desc') return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+            if (val === 'date-asc') return new Date(a.dataset.date) - new Date(b.dataset.date);
+            return 0;
+        });
+
+        cards.forEach(c => grid.appendChild(c));
+    });
+</script>
 
 {% endblock %}

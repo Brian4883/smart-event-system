@@ -1,14 +1,978 @@
 {% extends 'base.html' %}
+{% block title %}{{ event.title }} — EventSphere{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card shadow">
-        <img src="{{ event.image.url }}" class="card-img-top" style="height:300px; object-fit:cover;">
-        <div class="card-body">
-            <h2>{{ event.title }}</h2>
-            <p class="text-muted">{{ event.date }}</p>
-            <p>{{ event.description }}</p>
+
+<style>
+    /* ══════════════════════════════════════════
+     PAGE SHELL
+  ══════════════════════════════════════════ */
+    .event-detail-page {
+        padding-bottom: 5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* ══════════════════════════════════════════
+     HERO IMAGE BANNER
+  ══════════════════════════════════════════ */
+    .ed-hero {
+        position: relative;
+        height: clamp(280px, 42vw, 480px);
+        overflow: hidden;
+        margin-bottom: 0;
+    }
+
+    .ed-hero__img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transform: scale(1.05);
+        animation: heroZoom 18s ease-in-out infinite alternate;
+    }
+
+    @keyframes heroZoom {
+        from {
+            transform: scale(1.05);
+        }
+
+        to {
+            transform: scale(1.12);
+        }
+    }
+
+    /* no-image fallback */
+    .ed-hero__fallback {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, var(--surface2) 0%, var(--surface) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ed-hero__fallback i {
+        font-size: 5rem;
+        color: var(--border);
+    }
+
+    /* dark gradient overlay */
+    .ed-hero__overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom,
+                rgba(7, 9, 15, .2) 0%,
+                rgba(7, 9, 15, .55) 60%,
+                rgba(7, 9, 15, .95) 100%);
+    }
+
+    /* hero content on top of image */
+    .ed-hero__content {
+        position: absolute;
+        bottom: 2rem;
+        left: 0;
+        right: 0;
+        padding: 0 2.4rem;
+        z-index: 2;
+        animation: fadeUp .7s ease both;
+    }
+
+    .ed-hero__badges {
+        display: flex;
+        gap: .6rem;
+        flex-wrap: wrap;
+        margin-bottom: .9rem;
+    }
+
+    .ed-badge {
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        padding: .28rem .8rem;
+        border-radius: 40px;
+    }
+
+    .ed-badge--teal {
+        background: var(--teal);
+        color: #07090f;
+    }
+
+    .ed-badge--gold {
+        background: var(--gold);
+        color: #07090f;
+    }
+
+    .ed-badge--glass {
+        background: rgba(7, 9, 15, .6);
+        backdrop-filter: blur(8px);
+        border: 1px solid var(--border);
+        color: var(--text);
+    }
+
+    .ed-hero__title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(2rem, 4.5vw, 3.6rem);
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.08;
+        max-width: 800px;
+        text-shadow: 0 2px 20px rgba(0, 0, 0, .5);
+    }
+
+    /* ══════════════════════════════════════════
+     BREADCRUMB
+  ══════════════════════════════════════════ */
+    .ed-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        font-size: .78rem;
+        color: var(--muted);
+        padding: 1.2rem 0;
+        animation: fadeUp .5s .1s ease both;
+    }
+
+    .ed-breadcrumb a {
+        color: var(--muted);
+        text-decoration: none;
+        transition: color .2s;
+    }
+
+    .ed-breadcrumb a:hover {
+        color: var(--gold);
+    }
+
+    .ed-breadcrumb i {
+        font-size: .65rem;
+    }
+
+    /* ══════════════════════════════════════════
+     TWO-COLUMN LAYOUT
+  ══════════════════════════════════════════ */
+    .ed-layout {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 2rem;
+        align-items: start;
+        margin-top: .5rem;
+    }
+
+    /* ══════════════════════════════════════════
+     MAIN COLUMN
+  ══════════════════════════════════════════ */
+
+    /* ── about section ── */
+    .ed-section {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 2rem 2.2rem;
+        margin-bottom: 1.4rem;
+        animation: fadeUp .6s ease both;
+    }
+
+    .ed-section:nth-child(2) {
+        animation-delay: .1s;
+    }
+
+    .ed-section:nth-child(3) {
+        animation-delay: .2s;
+    }
+
+    .ed-section:nth-child(4) {
+        animation-delay: .3s;
+    }
+
+    .ed-section__label {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--teal);
+        margin-bottom: 1.2rem;
+        padding-bottom: .8rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .ed-section__label i {
+        width: 26px;
+        height: 26px;
+        background: rgba(45, 212, 192, .1);
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .82rem;
+    }
+
+    .ed-description {
+        font-size: .94rem;
+        color: var(--muted);
+        line-height: 1.85;
+        font-weight: 300;
+    }
+
+    .ed-description p {
+        margin-bottom: 1rem;
+    }
+
+    .ed-description p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* ── details grid ── */
+    .ed-details-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.1rem;
+    }
+
+    .ed-detail-item {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem 1.2rem;
+        display: flex;
+        align-items: flex-start;
+        gap: .85rem;
+        transition: border-color .25s, transform .2s;
+    }
+
+    .ed-detail-item:hover {
+        border-color: rgba(201, 168, 76, .25);
+        transform: translateY(-2px);
+    }
+
+    .ed-detail-icon {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+        background: rgba(201, 168, 76, .1);
+        border: 1px solid rgba(201, 168, 76, .2);
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .95rem;
+        color: var(--gold);
+    }
+
+    .ed-detail-icon.teal {
+        background: rgba(45, 212, 192, .1);
+        border-color: rgba(45, 212, 192, .2);
+        color: var(--teal);
+    }
+
+    .ed-detail-body {}
+
+    .ed-detail-label {
+        font-size: .7rem;
+        font-weight: 600;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: .18rem;
+    }
+
+    .ed-detail-value {
+        font-size: .9rem;
+        font-weight: 500;
+        color: var(--text);
+        line-height: 1.4;
+    }
+
+    /* ── organizer ── */
+    .ed-organizer {
+        display: flex;
+        align-items: center;
+        gap: 1.1rem;
+    }
+
+    .ed-organizer__avatar {
+        width: 52px;
+        height: 52px;
+        flex-shrink: 0;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--gold), var(--teal));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #07090f;
+    }
+
+    .ed-organizer__name {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: .1rem;
+    }
+
+    .ed-organizer__role {
+        font-size: .8rem;
+        color: var(--muted);
+    }
+
+    .ed-organizer__contact {
+        margin-left: auto;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 40px;
+        padding: .45rem 1.1rem;
+        font-size: .8rem;
+        font-weight: 500;
+        color: var(--muted);
+        text-decoration: none;
+        transition: border-color .2s, color .2s;
+    }
+
+    .ed-organizer__contact:hover {
+        border-color: var(--teal);
+        color: var(--teal);
+    }
+
+    /* ══════════════════════════════════════════
+     SIDEBAR / TICKET CARD
+  ══════════════════════════════════════════ */
+    .ed-sidebar {
+        position: sticky;
+        top: calc(var(--nav-h) + 1.5rem);
+    }
+
+    .ed-ticket-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+        animation: fadeUp .7s .2s ease both;
+    }
+
+    /* shimmer top bar */
+    .ed-ticket-card__bar {
+        height: 4px;
+        background: linear-gradient(90deg, var(--gold), var(--teal), var(--gold));
+        background-size: 200% 100%;
+        animation: shimmer 3s linear infinite;
+    }
+
+    @keyframes shimmer {
+        from {
+            background-position: 200% center;
+        }
+
+        to {
+            background-position: -200% center;
+        }
+    }
+
+    .ed-ticket-card__body {
+        padding: 1.8rem;
+    }
+
+    .ed-price-display {
+        text-align: center;
+        padding: 1.4rem 1rem;
+        background: var(--surface2);
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border);
+    }
+
+    .ed-price-label {
+        font-size: .7rem;
+        font-weight: 600;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: .3rem;
+    }
+
+    .ed-price-value {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.8rem;
+        font-weight: 700;
+        color: var(--gold);
+        line-height: 1;
+    }
+
+    .ed-price-value.free {
+        color: var(--teal);
+    }
+
+    .ed-price-sub {
+        font-size: .75rem;
+        color: var(--muted);
+        margin-top: .3rem;
+    }
+
+    /* quantity selector */
+    .ed-qty-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.4rem;
+    }
+
+    .ed-qty-label {
+        font-size: .8rem;
+        font-weight: 600;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+
+    .ed-qty-ctrl {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+    }
+
+    .qty-btn {
+        width: 32px;
+        height: 32px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--text);
+        font-size: 1.1rem;
+        transition: border-color .2s, background .2s;
+        user-select: none;
+    }
+
+    .qty-btn:hover {
+        border-color: var(--gold);
+        color: var(--gold);
+    }
+
+    .qty-btn:active {
+        background: rgba(201, 168, 76, .1);
+    }
+
+    .qty-val {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text);
+        min-width: 24px;
+        text-align: center;
+    }
+
+    /* total row */
+    .ed-total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--surface2);
+        border-radius: 8px;
+        padding: .75rem 1rem;
+        margin-bottom: 1.4rem;
+        border: 1px solid var(--border);
+    }
+
+    .ed-total-label {
+        font-size: .82rem;
+        color: var(--muted);
+    }
+
+    .ed-total-value {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--gold);
+    }
+
+    /* buy button */
+    .btn-buy-ticket {
+        width: 100%;
+        background: var(--gold);
+        color: #07090f;
+        border: none;
+        border-radius: 40px;
+        padding: 1rem 1rem;
+        font-family: 'Outfit', sans-serif;
+        font-size: .95rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        position: relative;
+        overflow: hidden;
+        transition: background .2s, transform .15s, box-shadow .2s;
+        text-decoration: none;
+        margin-bottom: .85rem;
+    }
+
+    .btn-buy-ticket::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, .2), transparent);
+        opacity: 0;
+        transition: opacity .2s;
+    }
+
+    .btn-buy-ticket:hover {
+        background: var(--gold-lt);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px rgba(201, 168, 76, .32);
+        color: #07090f;
+    }
+
+    .btn-buy-ticket:hover::after {
+        opacity: 1;
+    }
+
+    .btn-wishlist {
+        width: 100%;
+        background: transparent;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        border-radius: 40px;
+        padding: .72rem 1rem;
+        font-family: 'Outfit', sans-serif;
+        font-size: .86rem;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        transition: border-color .2s, color .2s, background .2s;
+    }
+
+    .btn-wishlist:hover {
+        border-color: rgba(255, 255, 255, .25);
+        color: var(--text);
+        background: rgba(255, 255, 255, .04);
+    }
+
+    /* trust badges */
+    .ed-trust {
+        display: flex;
+        justify-content: center;
+        gap: 1.2rem;
+        padding-top: 1.2rem;
+        border-top: 1px solid var(--border);
+        margin-top: 1.2rem;
+    }
+
+    .ed-trust-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .3rem;
+        font-size: .68rem;
+        color: var(--muted);
+        text-align: center;
+        letter-spacing: .05em;
+    }
+
+    .ed-trust-item i {
+        font-size: 1.1rem;
+        color: var(--teal);
+    }
+
+    /* share card */
+    .ed-share-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.3rem 1.5rem;
+        margin-top: 1.2rem;
+        animation: fadeUp .7s .35s ease both;
+    }
+
+    .ed-share-label {
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: .9rem;
+    }
+
+    .ed-share-btns {
+        display: flex;
+        gap: .6rem;
+    }
+
+    .share-btn {
+        flex: 1;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: .55rem .5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .4rem;
+        font-size: .76rem;
+        font-weight: 500;
+        color: var(--muted);
+        cursor: pointer;
+        text-decoration: none;
+        transition: border-color .2s, color .2s, background .2s;
+    }
+
+    .share-btn i {
+        font-size: .95rem;
+    }
+
+    .share-btn:hover {
+        border-color: var(--teal);
+        color: var(--teal);
+        background: rgba(45, 212, 192, .05);
+    }
+
+    .share-btn.copy-btn.copied {
+        border-color: var(--gold);
+        color: var(--gold);
+    }
+
+    /* ══════════════════════════════════════════
+     ANIMATIONS
+  ══════════════════════════════════════════ */
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ══════════════════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════════════════ */
+    @media (max-width: 860px) {
+        .ed-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .ed-sidebar {
+            position: static;
+        }
+
+        .ed-details-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .ed-hero__content {
+            padding: 0 1.4rem;
+        }
+    }
+
+    @media (max-width: 500px) {
+        .ed-details-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .ed-section {
+            padding: 1.5rem 1.3rem;
+        }
+
+        .ed-ticket-card__body {
+            padding: 1.3rem;
+        }
+    }
+</style>
+
+<div class="event-detail-page">
+
+    <!-- ══ HERO ══ -->
+    <div class="ed-hero">
+        {% if event.image %}
+        <img src="{{ event.image.url }}" class="ed-hero__img" alt="{{ event.title }}">
+        {% else %}
+        <div class="ed-hero__fallback">
+            <i class="bi bi-calendar-event"></i>
+        </div>
+        {% endif %}
+        <div class="ed-hero__overlay"></div>
+
+        <div class="ed-hero__content">
+            <div class="ed-hero__badges">
+                <span class="ed-badge ed-badge--teal">
+                    <i class="bi bi-lightning-charge-fill me-1"></i>Live
+                </span>
+                {% if event.price == 0 %}
+                <span class="ed-badge ed-badge--gold">Free Entry</span>
+                {% else %}
+                <span class="ed-badge ed-badge--glass">${{ event.price }} / ticket</span>
+                {% endif %}
+                {% if event.category %}
+                <span class="ed-badge ed-badge--glass">{{ event.category }}</span>
+                {% endif %}
+            </div>
+            <h1 class="ed-hero__title">{{ event.title }}</h1>
         </div>
     </div>
+
+    <!-- ══ BREADCRUMB ══ -->
+    <div class="ed-breadcrumb">
+        <a href="{% url 'home' %}">Home</a>
+        <i class="bi bi-chevron-right"></i>
+        <a href="{% url 'event_list' %}">Events</a>
+        <i class="bi bi-chevron-right"></i>
+        <span style="color:var(--text);">{{ event.title|truncatechars:40 }}</span>
+    </div>
+
+    <!-- ══ MAIN LAYOUT ══ -->
+    <div class="ed-layout">
+
+        <!-- ── LEFT COLUMN ── -->
+        <div class="ed-main">
+
+            <!-- About -->
+            <div class="ed-section">
+                <div class="ed-section__label">
+                    <i class="bi bi-info-circle"></i>
+                    About This Event
+                </div>
+                <div class="ed-description">
+                    {{ event.description|linebreaks }}
+                </div>
+            </div>
+
+            <!-- Details grid -->
+            <div class="ed-section">
+                <div class="ed-section__label">
+                    <i class="bi bi-list-check"></i>
+                    Event Details
+                </div>
+                <div class="ed-details-grid">
+
+                    <div class="ed-detail-item">
+                        <div class="ed-detail-icon"><i class="bi bi-calendar3"></i></div>
+                        <div class="ed-detail-body">
+                            <div class="ed-detail-label">Date</div>
+                            <div class="ed-detail-value">{{ event.start_date }}</div>
+                        </div>
+                    </div>
+
+                    {% if event.end_date %}
+                    <div class="ed-detail-item">
+                        <div class="ed-detail-icon"><i class="bi bi-calendar-check"></i></div>
+                        <div class="ed-detail-body">
+                            <div class="ed-detail-label">End Date</div>
+                            <div class="ed-detail-value">{{ event.end_date }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="ed-detail-item">
+                        <div class="ed-detail-icon teal"><i class="bi bi-geo-alt"></i></div>
+                        <div class="ed-detail-body">
+                            <div class="ed-detail-label">Location</div>
+                            <div class="ed-detail-value">{{ event.location }}</div>
+                        </div>
+                    </div>
+
+                    {% if event.capacity %}
+                    <div class="ed-detail-item">
+                        <div class="ed-detail-icon teal"><i class="bi bi-people"></i></div>
+                        <div class="ed-detail-body">
+                            <div class="ed-detail-label">Capacity</div>
+                            <div class="ed-detail-value">{{ event.capacity }} seats</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="ed-detail-item">
+                        <div class="ed-detail-icon"><i class="bi bi-tag"></i></div>
+                        <div class="ed-detail-body">
+                            <div class="ed-detail-label">Price</div>
+                            <div class="ed-detail-value">
+                                {% if event.price == 0 %}Free{% else %}${{ event.price }} per ticket{% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if event.category %}
+                    <div class="ed-detail-item">
+                        <div class="ed-detail-icon"><i class="bi bi-grid"></i></div>
+                        <div class="ed-detail-body">
+                            <div class="ed-detail-label">Category</div>
+                            <div class="ed-detail-value">{{ event.category }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <!-- Organizer -->
+            <div class="ed-section">
+                <div class="ed-section__label">
+                    <i class="bi bi-person-badge"></i>
+                    Organizer
+                </div>
+                <div class="ed-organizer">
+                    <div class="ed-organizer__avatar">
+                        {{ event.organizer.username|first|upper }}
+                    </div>
+                    <div>
+                        <div class="ed-organizer__name">{{ event.organizer.username }}</div>
+                        <div class="ed-organizer__role">Event Organizer &nbsp;·&nbsp; EventSphere</div>
+                    </div>
+                    <a href="mailto:{{ event.organizer.email }}" class="ed-organizer__contact">
+                        <i class="bi bi-envelope me-1"></i> Contact
+                    </a>
+                </div>
+            </div>
+
+        </div><!-- /ed-main -->
+
+        <!-- ── SIDEBAR ── -->
+        <div class="ed-sidebar">
+
+            <!-- Ticket card -->
+            <div class="ed-ticket-card">
+                <div class="ed-ticket-card__bar"></div>
+                <div class="ed-ticket-card__body">
+
+                    <!-- Price display -->
+                    <div class="ed-price-display">
+                        <div class="ed-price-label">Ticket Price</div>
+                        <div class="ed-price-value {% if event.price == 0 %}free{% endif %}">
+                            {% if event.price == 0 %}Free{% else %}${{ event.price }}{% endif %}
+                        </div>
+                        <div class="ed-price-sub">per person · all fees included</div>
+                    </div>
+
+                    <!-- Quantity -->
+                    {% if event.price > 0 %}
+                    <div class="ed-qty-row">
+                        <span class="ed-qty-label">Quantity</span>
+                        <div class="ed-qty-ctrl">
+                            <div class="qty-btn" id="qtyMinus">−</div>
+                            <div class="qty-val" id="qtyVal">1</div>
+                            <div class="qty-btn" id="qtyPlus">+</div>
+                        </div>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="ed-total-row">
+                        <span class="ed-total-label">Total</span>
+                        <span class="ed-total-value" id="totalVal">${{ event.price }}</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- CTA -->
+                    <a href="#" class="btn-buy-ticket">
+                        <i class="bi bi-ticket-perforated"></i>
+                        {% if event.price == 0 %}Register for Free{% else %}Buy Ticket{% endif %}
+                    </a>
+
+                    <button class="btn-wishlist">
+                        <i class="bi bi-heart"></i> Save to Wishlist
+                    </button>
+
+                    <!-- Trust badges -->
+                    <div class="ed-trust">
+                        <div class="ed-trust-item">
+                            <i class="bi bi-shield-check"></i>
+                            Secure
+                        </div>
+                        <div class="ed-trust-item">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            Refundable
+                        </div>
+                        <div class="ed-trust-item">
+                            <i class="bi bi-qr-code"></i>
+                            Instant QR
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Share card -->
+            <div class="ed-share-card">
+                <div class="ed-share-label">Share This Event</div>
+                <div class="ed-share-btns">
+                    <a href="https://twitter.com/intent/tweet?text={{ event.title|urlencode }}&url={{ request.build_absolute_uri }}"
+                        target="_blank" class="share-btn">
+                        <i class="bi bi-twitter-x"></i> X
+                    </a>
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}"
+                        target="_blank" class="share-btn">
+                        <i class="bi bi-facebook"></i> FB
+                    </a>
+                    <a href="https://wa.me/?text={{ event.title|urlencode }}%20{{ request.build_absolute_uri }}"
+                        target="_blank" class="share-btn">
+                        <i class="bi bi-whatsapp"></i> WA
+                    </a>
+                    <button class="share-btn copy-btn" id="copyLink">
+                        <i class="bi bi-link-45deg"></i> Copy
+                    </button>
+                </div>
+            </div>
+
+        </div><!-- /ed-sidebar -->
+
+    </div><!-- /ed-layout -->
+
 </div>
+
+<script>
+    /* ── QUANTITY COUNTER ── */
+    const price = parseFloat("{{ event.price }}") || 0;
+    const qtyMinus = document.getElementById('qtyMinus');
+    const qtyPlus = document.getElementById('qtyPlus');
+    const qtyVal = document.getElementById('qtyVal');
+    const totalVal = document.getElementById('totalVal');
+    let qty = 1;
+
+    function updateTotal() {
+        if (qtyVal) qtyVal.textContent = qty;
+        if (totalVal) totalVal.textContent = '$' + (price * qty).toFixed(2);
+    }
+
+    qtyMinus?.addEventListener('click', () => { if (qty > 1) { qty--; updateTotal(); } });
+    qtyPlus?.addEventListener('click', () => { if (qty < 10) { qty++; updateTotal(); } });
+
+    /* ── COPY LINK ── */
+    document.getElementById('copyLink')?.addEventListener('click', function () {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            this.classList.add('copied');
+            const icon = this.querySelector('i');
+            icon.className = 'bi bi-check2';
+            this.querySelector('i').after(document.createTextNode(' Copied!'));
+            setTimeout(() => {
+                this.classList.remove('copied');
+                icon.className = 'bi bi-link-45deg';
+                this.lastChild.remove();
+            }, 2500);
+        });
+    });
+
+    /* ── WISHLIST HEART TOGGLE ── */
+    const wishBtn = document.querySelector('.btn-wishlist');
+    wishBtn?.addEventListener('click', function () {
+        const icon = this.querySelector('i');
+        const saved = icon.classList.contains('bi-heart-fill');
+        icon.className = saved ? 'bi bi-heart' : 'bi bi-heart-fill';
+        icon.style.color = saved ? '' : 'var(--gold)';
+        this.childNodes[1].textContent = saved ? ' Save to Wishlist' : ' Saved!';
+    });
+</script>
+
 {% endblock %}

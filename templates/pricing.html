@@ -1,0 +1,1125 @@
+{% extends 'base.html' %}
+{% block title %}Pricing — EventSphere{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ══════════════════════════════════════════
+     PAGE SHELL
+  ══════════════════════════════════════════ */
+    .pricing-page {
+        padding-bottom: 5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* ambient blobs */
+    .pricing-page::before {
+        content: '';
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        top: -250px;
+        right: -150px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(201, 168, 76, .1) 0%, transparent 70%);
+        pointer-events: none;
+        animation: blobPulse 10s ease-in-out infinite alternate;
+    }
+
+    .pricing-page::after {
+        content: '';
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        bottom: 100px;
+        left: -100px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(45, 212, 192, .07) 0%, transparent 70%);
+        pointer-events: none;
+        animation: blobPulse 8s ease-in-out infinite alternate-reverse;
+    }
+
+    @keyframes blobPulse {
+        from {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        to {
+            transform: scale(1.2);
+            opacity: .6;
+        }
+    }
+
+    /* ══════════════════════════════════════════
+     HERO HEADER
+  ══════════════════════════════════════════ */
+    .pricing-hero {
+        text-align: center;
+        padding: 3.5rem 1rem 3rem;
+        position: relative;
+        z-index: 2;
+        animation: fadeUp .6s ease both;
+    }
+
+    .page-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        font-size: .72rem;
+        font-weight: 600;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--teal);
+        margin-bottom: .9rem;
+    }
+
+    .page-eyebrow::before,
+    .page-eyebrow::after {
+        content: '';
+        width: 20px;
+        height: 1.5px;
+        background: var(--teal);
+        display: inline-block;
+    }
+
+    .page-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(2.2rem, 5vw, 3.5rem);
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1.08;
+        margin-bottom: .6rem;
+    }
+
+    .page-title .gold {
+        color: var(--gold);
+    }
+
+    .page-sub {
+        font-size: 1rem;
+        color: var(--muted);
+        font-weight: 300;
+        line-height: 1.75;
+        max-width: 520px;
+        margin: 0 auto 2rem;
+    }
+
+    /* billing toggle */
+    .billing-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: .8rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 40px;
+        padding: .4rem .5rem .4rem 1rem;
+        font-size: .85rem;
+        color: var(--muted);
+        animation: fadeUp .6s .15s ease both;
+    }
+
+    .toggle-track {
+        width: 44px;
+        height: 24px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 40px;
+        position: relative;
+        cursor: pointer;
+        transition: background .3s;
+    }
+
+    .toggle-track.annual {
+        background: var(--teal);
+    }
+
+    .toggle-thumb {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        background: var(--text);
+        border-radius: 50%;
+        transition: transform .3s;
+    }
+
+    .toggle-track.annual .toggle-thumb {
+        transform: translateX(20px);
+    }
+
+    .billing-toggle label {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .save-badge {
+        background: var(--teal);
+        color: #07090f;
+        font-size: .65rem;
+        font-weight: 700;
+        padding: .18rem .55rem;
+        border-radius: 40px;
+        letter-spacing: .06em;
+    }
+
+    /* ══════════════════════════════════════════
+     PRICING CARDS
+  ══════════════════════════════════════════ */
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        position: relative;
+        z-index: 2;
+        animation: fadeUp .6s .25s ease both;
+    }
+
+    .price-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+        position: relative;
+    }
+
+    .price-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 28px 60px rgba(0, 0, 0, .45);
+        border-color: rgba(201, 168, 76, .2);
+    }
+
+    .price-card.featured {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 1px var(--gold), 0 32px 70px rgba(201, 168, 76, .18);
+        transform: translateY(-6px);
+    }
+
+    .price-card.featured:hover {
+        transform: translateY(-14px);
+    }
+
+    /* popular ribbon */
+    .pc-ribbon {
+        background: var(--gold);
+        color: #07090f;
+        font-size: .65rem;
+        font-weight: 800;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        text-align: center;
+        padding: .4rem;
+    }
+
+    /* shimmer bar */
+    .pc-bar {
+        height: 3px;
+        background: var(--border);
+    }
+
+    .price-card.featured .pc-bar {
+        background: linear-gradient(90deg, var(--gold), var(--teal), var(--gold));
+        background-size: 200% 100%;
+        animation: shimmer 3s linear infinite;
+    }
+
+    @keyframes shimmer {
+        from {
+            background-position: 200% center;
+        }
+
+        to {
+            background-position: -200% center;
+        }
+    }
+
+    .pc-body {
+        padding: 2rem 2rem 1.5rem;
+        flex: 1;
+    }
+
+    .pc-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .pc-icon.teal {
+        background: rgba(45, 212, 192, .1);
+        color: var(--teal);
+        border: 1px solid rgba(45, 212, 192, .2);
+    }
+
+    .pc-icon.gold {
+        background: rgba(201, 168, 76, .1);
+        color: var(--gold);
+        border: 1px solid rgba(201, 168, 76, .2);
+    }
+
+    .pc-icon.purple {
+        background: rgba(139, 92, 246, .1);
+        color: #8b5cf6;
+        border: 1px solid rgba(139, 92, 246, .2);
+    }
+
+    .pc-name {
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: .4rem;
+    }
+
+    .pc-tagline {
+        font-size: .88rem;
+        color: var(--muted);
+        font-weight: 300;
+        line-height: 1.6;
+        margin-bottom: 1.6rem;
+    }
+
+    .pc-price {
+        display: flex;
+        align-items: flex-end;
+        gap: .3rem;
+        margin-bottom: .3rem;
+    }
+
+    .pc-amount {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1;
+    }
+
+    .pc-amount.free-txt {
+        color: var(--teal);
+        font-size: 2.4rem;
+    }
+
+    .pc-period {
+        font-size: .82rem;
+        color: var(--muted);
+        padding-bottom: .4rem;
+    }
+
+    .pc-annual-note {
+        font-size: .75rem;
+        color: var(--muted);
+        margin-bottom: 1.6rem;
+        min-height: 1rem;
+    }
+
+    .pc-divider {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 1.2rem 0;
+    }
+
+    /* features list */
+    .pc-features {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: .65rem;
+    }
+
+    .pc-features li {
+        display: flex;
+        align-items: flex-start;
+        gap: .7rem;
+        font-size: .86rem;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    .pc-features li i {
+        font-size: .82rem;
+        flex-shrink: 0;
+        margin-top: .15rem;
+    }
+
+    .pc-features li .check {
+        color: var(--teal);
+    }
+
+    .pc-features li .cross {
+        color: rgba(255, 255, 255, .2);
+    }
+
+    .pc-features li.dim {
+        opacity: .45;
+    }
+
+    /* CTA */
+    .pc-footer {
+        padding: 0 2rem 2rem;
+    }
+
+    .pc-cta {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: .88rem 1rem;
+        border-radius: 40px;
+        font-family: 'Outfit', sans-serif;
+        font-size: .9rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: transform .2s, box-shadow .2s, background .2s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .pc-cta::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, .15), transparent);
+        opacity: 0;
+        transition: opacity .2s;
+    }
+
+    .pc-cta:hover {
+        transform: translateY(-2px);
+    }
+
+    .pc-cta:hover::after {
+        opacity: 1;
+    }
+
+    .pc-cta.outline {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--border);
+    }
+
+    .pc-cta.outline:hover {
+        border-color: rgba(255, 255, 255, .3);
+        background: rgba(255, 255, 255, .05);
+    }
+
+    .pc-cta.gold-btn {
+        background: var(--gold);
+        color: #07090f;
+    }
+
+    .pc-cta.gold-btn:hover {
+        background: var(--gold-lt);
+        box-shadow: 0 8px 24px rgba(201, 168, 76, .3);
+        color: #07090f;
+    }
+
+    .pc-cta.teal-btn {
+        background: var(--teal);
+        color: #07090f;
+    }
+
+    .pc-cta.teal-btn:hover {
+        background: #25bfac;
+        box-shadow: 0 8px 24px rgba(45, 212, 192, .25);
+        color: #07090f;
+    }
+
+    /* ══════════════════════════════════════════
+     FEATURE COMPARISON TABLE
+  ══════════════════════════════════════════ */
+    .compare-section {
+        margin-top: 5rem;
+        position: relative;
+        z-index: 2;
+        animation: fadeUp .6s .3s ease both;
+    }
+
+    .compare-section .section-eyebrow {
+        text-align: center;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--teal);
+        margin-bottom: .7rem;
+    }
+
+    .compare-section h2 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(1.8rem, 3vw, 2.6rem);
+        font-weight: 700;
+        color: var(--text);
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .compare-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .compare-table th,
+    .compare-table td {
+        padding: 1rem 1.4rem;
+        text-align: center;
+        font-size: .88rem;
+    }
+
+    .compare-table th:first-child,
+    .compare-table td:first-child {
+        text-align: left;
+    }
+
+    .compare-table thead th {
+        background: var(--surface2);
+        border-bottom: 1px solid var(--border);
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+
+    .compare-table thead th.highlight {
+        color: var(--gold);
+    }
+
+    .compare-table tbody tr {
+        border-bottom: 1px solid var(--border);
+        transition: background .2s;
+    }
+
+    .compare-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .compare-table tbody tr:hover {
+        background: rgba(255, 255, 255, .02);
+    }
+
+    .compare-table tbody td {
+        color: var(--muted);
+    }
+
+    .compare-table tbody td:first-child {
+        color: var(--text);
+        font-weight: 500;
+    }
+
+    .compare-table .c-yes {
+        color: var(--teal);
+        font-size: 1rem;
+    }
+
+    .compare-table .c-no {
+        color: rgba(255, 255, 255, .15);
+        font-size: 1rem;
+    }
+
+    .compare-table .c-val {
+        color: var(--gold);
+        font-weight: 600;
+    }
+
+    .compare-table .group-row td {
+        background: rgba(201, 168, 76, .04);
+        color: var(--gold);
+        font-size: .7rem;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        padding: .7rem 1.4rem;
+    }
+
+    /* ══════════════════════════════════════════
+     FAQ
+  ══════════════════════════════════════════ */
+    .faq-section {
+        margin-top: 5rem;
+        position: relative;
+        z-index: 2;
+        animation: fadeUp .6s .35s ease both;
+    }
+
+    .faq-section .section-eyebrow {
+        text-align: center;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--teal);
+        margin-bottom: .7rem;
+    }
+
+    .faq-section h2 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(1.8rem, 3vw, 2.6rem);
+        font-weight: 700;
+        color: var(--text);
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .faq-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .faq-item {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: border-color .25s;
+    }
+
+    .faq-item:hover {
+        border-color: rgba(201, 168, 76, .2);
+    }
+
+    .faq-question {
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 1.3rem 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        text-align: left;
+        cursor: pointer;
+        font-family: 'Outfit', sans-serif;
+        font-size: .92rem;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .faq-question i {
+        color: var(--gold);
+        flex-shrink: 0;
+        transition: transform .3s;
+        font-size: .85rem;
+    }
+
+    .faq-item.open .faq-question i {
+        transform: rotate(45deg);
+    }
+
+    .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height .35s ease, padding .3s ease;
+        font-size: .88rem;
+        color: var(--muted);
+        line-height: 1.75;
+        font-weight: 300;
+        padding: 0 1.5rem;
+    }
+
+    .faq-item.open .faq-answer {
+        max-height: 200px;
+        padding: 0 1.5rem 1.4rem;
+    }
+
+    /* ══════════════════════════════════════════
+     CTA BANNER
+  ══════════════════════════════════════════ */
+    .pricing-cta {
+        margin-top: 5rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 4rem 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        z-index: 2;
+        animation: fadeUp .6s .4s ease both;
+    }
+
+    .pricing-cta::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 50% 0%, rgba(201, 168, 76, .12) 0%, transparent 65%);
+        pointer-events: none;
+    }
+
+    .pricing-cta h2 {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(1.8rem, 3.5vw, 3rem);
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: .7rem;
+        position: relative;
+    }
+
+    .pricing-cta h2 .gold {
+        color: var(--gold);
+    }
+
+    .pricing-cta p {
+        font-size: .96rem;
+        color: var(--muted);
+        max-width: 440px;
+        margin: 0 auto 2rem;
+        font-weight: 300;
+        line-height: 1.7;
+        position: relative;
+    }
+
+    .pricing-cta__btns {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+        position: relative;
+    }
+
+    .btn-gold {
+        background: var(--gold);
+        color: #07090f;
+        padding: .9rem 2.2rem;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: .92rem;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: background .2s, transform .15s, box-shadow .2s;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+    }
+
+    .btn-gold:hover {
+        background: var(--gold-lt);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(201, 168, 76, .3);
+        color: #07090f;
+    }
+
+    .btn-ghost {
+        background: transparent;
+        color: var(--text);
+        padding: .9rem 2.2rem;
+        border-radius: 40px;
+        font-weight: 500;
+        font-size: .92rem;
+        text-decoration: none;
+        border: 1px solid var(--border);
+        transition: border-color .2s, background .2s;
+    }
+
+    .btn-ghost:hover {
+        border-color: rgba(255, 255, 255, .3);
+        background: rgba(255, 255, 255, .05);
+        color: var(--text);
+    }
+
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 860px) {
+        .pricing-grid {
+            grid-template-columns: 1fr;
+            max-width: 440px;
+            margin: 0 auto;
+        }
+
+        .faq-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .compare-table {
+            font-size: .78rem;
+        }
+
+        .compare-table th,
+        .compare-table td {
+            padding: .75rem .8rem;
+        }
+    }
+</style>
+
+<div class="pricing-page">
+
+    <!-- ══ HERO ══ -->
+    <div class="pricing-hero">
+        <div class="page-eyebrow">Simple Pricing</div>
+        <h1 class="page-title">Plans That Grow<br><span class="gold">With Your Events</span></h1>
+        <p class="page-sub">
+            Start free, upgrade when you need more. No hidden fees, no contracts.
+            Cancel any time.
+        </p>
+
+        <!-- billing toggle -->
+        <div class="billing-toggle">
+            <label id="monthlyLabel" style="color:var(--text);">Monthly</label>
+            <div class="toggle-track" id="billingToggle">
+                <div class="toggle-thumb"></div>
+            </div>
+            <label id="annualLabel">Annual</label>
+            <span class="save-badge">Save 25%</span>
+        </div>
+    </div>
+
+    <!-- ══ PRICING CARDS ══ -->
+    <div class="pricing-grid">
+
+        <!-- FREE -->
+        <div class="price-card">
+            <div class="pc-bar"></div>
+            <div class="pc-body">
+                <div class="pc-icon teal"><i class="bi bi-rocket"></i></div>
+                <div class="pc-name">Starter</div>
+                <p class="pc-tagline">Perfect for individuals testing the waters with their first event.</p>
+                <div class="pc-price">
+                    <span class="pc-amount free-txt">Free</span>
+                </div>
+                <div class="pc-annual-note">Always free — no credit card needed</div>
+                <hr class="pc-divider">
+                <ul class="pc-features">
+                    <li><i class="bi bi-check-circle-fill check"></i> Up to 3 events per month</li>
+                    <li><i class="bi bi-check-circle-fill check"></i> Up to 50 attendees per event</li>
+                    <li><i class="bi bi-check-circle-fill check"></i> Basic ticketing & QR check-in</li>
+                    <li><i class="bi bi-check-circle-fill check"></i> EventSphere event page</li>
+                    <li class="dim"><i class="bi bi-x-circle-fill cross"></i> Custom branding</li>
+                    <li class="dim"><i class="bi bi-x-circle-fill cross"></i> Analytics dashboard</li>
+                    <li class="dim"><i class="bi bi-x-circle-fill cross"></i> Priority support</li>
+                </ul>
+            </div>
+            <div class="pc-footer">
+                <a href="{% url 'register' %}" class="pc-cta outline">Get Started Free</a>
+            </div>
+        </div>
+
+        <!-- PRO (featured) -->
+        <div class="price-card featured">
+            <div class="pc-ribbon"><i class="bi bi-stars me-1"></i> Most Popular</div>
+            <div class="pc-bar"></div>
+            <div class="pc-body">
+                <div class="pc-icon gold"><i class="bi bi-lightning-charge"></i></div>
+                <div class="pc-name">Pro</div>
+                <p class="pc-tagline">For serious organisers who need full control and powerful tools.</p>
+                <div class="pc-price">
+                    <span class="pc-amount" id="proAmount">$29</span>
+                    <span class="pc-period" id="proPeriod">/ month</span>
+                </div>
+                <div class="pc-annual-note" id="proNote">Billed monthly · $348/year</div>
+                <hr class="pc-divider">
+                <ul class="pc-features">
+                    <li><i class="bi bi-check-circle-fill check"></i> Unlimited events</li>
+                    <li><i class="bi bi-check-circle-fill check"></i> Up to 1,000 attendees per event</li>
+                    <li><i class="bi bi-check-circle-fill check"></i> Advanced ticketing & seat maps</li>
+                    <li><i class="bi bi-check-circle-fill check"></i> Full analytics dashboard</li>
+                    <li><i class="bi bi-check-circle-fill check"></i> Custom branding & domain</li>
+                    <li><i class="bi bi-check-circle-fill check"></i> Email marketing tools</li>
+                    <li><i class="bi bi-check-circle-fill check"></i> Priority email support</li>
+                </ul>
+            </div>
+            <div class="pc-footer">
+                <a href="{% url 'register' %}" class="pc-cta gold-btn">Start Pro Free Trial</a>
+            </div>
+        </div>
+
+        <!-- ENTERPRISE -->
+        <div class="price-card">
+            <div class="pc-bar"></div>
+            <div class="pc-body">
+                <div class="pc-icon purple"><i class="bi bi-building"></i></div>
+                <div class="pc-name">Enterprise</div>
+                <p class="pc-tagline">For large organisations, agencies, and high-volume event producers.</p>
+                <div class="pc-price">
+                    <span class="pc-amount" id="entAmount">$99</span>
+                    <span class="pc-period" id="entPeriod">/ month</span>
+                </div>
+                <div class="pc-annual-note" id="entNote">Billed monthly · $1,188/year</div>
+                <hr class="pc-divider">
+                <ul class="pc-features">
+                    <li><i class="bi bi-check-circle-fill check"></i> Everything in Pro</li>
+                    <li><i class="bi bi-check-circle-fill check"></i> Unlimited attendees</li>
+                    <li><i class="bi bi-check-circle-fill check"></i> Dedicated account manager</li>
+                    <li><i class="bi bi-check-circle-fill check"></i> White-label solution</li>
+                    <li><i class="bi bi-check-circle-fill check"></i> API access & webhooks</li>
+                    <li><i class="bi bi-check-circle-fill check"></i> SSO & team permissions</li>
+                    <li><i class="bi bi-check-circle-fill check"></i> 24/7 phone & chat support</li>
+                </ul>
+            </div>
+            <div class="pc-footer">
+                <a href="mailto:enterprise@eventsphere.com" class="pc-cta teal-btn">Contact Sales</a>
+            </div>
+        </div>
+
+    </div><!-- /pricing-grid -->
+
+    <!-- ══ COMPARISON TABLE ══ -->
+    <div class="compare-section">
+        <div class="section-eyebrow">Compare Plans</div>
+        <h2>Everything Side by Side</h2>
+        <div style="overflow-x:auto;">
+            <table class="compare-table">
+                <thead>
+                    <tr>
+                        <th style="width:40%;">Feature</th>
+                        <th>Starter</th>
+                        <th class="highlight">Pro</th>
+                        <th>Enterprise</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="group-row">
+                        <td colspan="4">Event Limits</td>
+                    </tr>
+                    <tr>
+                        <td>Events per month</td>
+                        <td>3</td>
+                        <td class="c-val">Unlimited</td>
+                        <td class="c-val">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td>Attendees per event</td>
+                        <td>50</td>
+                        <td class="c-val">1,000</td>
+                        <td class="c-val">Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td>Ticket types</td>
+                        <td>1</td>
+                        <td class="c-val">10</td>
+                        <td class="c-val">Unlimited</td>
+                    </tr>
+
+                    <tr class="group-row">
+                        <td colspan="4">Features</td>
+                    </tr>
+                    <tr>
+                        <td>QR code check-in</td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Custom branding</td>
+                        <td><i class="bi bi-x c-no"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Analytics dashboard</td>
+                        <td><i class="bi bi-x c-no"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Email marketing</td>
+                        <td><i class="bi bi-x c-no"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                    </tr>
+                    <tr>
+                        <td>API access</td>
+                        <td><i class="bi bi-x c-no"></i></td>
+                        <td><i class="bi bi-x c-no"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                    </tr>
+                    <tr>
+                        <td>White-label</td>
+                        <td><i class="bi bi-x c-no"></i></td>
+                        <td><i class="bi bi-x c-no"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                    </tr>
+
+                    <tr class="group-row">
+                        <td colspan="4">Support</td>
+                    </tr>
+                    <tr>
+                        <td>Email support</td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Priority support</td>
+                        <td><i class="bi bi-x c-no"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                    </tr>
+                    <tr>
+                        <td>24/7 phone & chat</td>
+                        <td><i class="bi bi-x c-no"></i></td>
+                        <td><i class="bi bi-x c-no"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Dedicated manager</td>
+                        <td><i class="bi bi-x c-no"></i></td>
+                        <td><i class="bi bi-x c-no"></i></td>
+                        <td><i class="bi bi-check2 c-yes"></i></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ══ FAQ ══ -->
+    <div class="faq-section">
+        <div class="section-eyebrow">FAQ</div>
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-grid">
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    Can I upgrade or downgrade at any time?
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+                <div class="faq-answer">
+                    Yes — you can upgrade, downgrade, or cancel your plan at any time from your account settings.
+                    Changes take effect at the start of your next billing cycle. No penalties or fees.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    Is there a free trial for Pro?
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+                <div class="faq-answer">
+                    Yes. All new accounts get a 14-day free trial of the Pro plan — no credit card required. You'll only
+                    be charged if you choose to continue after the trial ends.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    What payment methods do you accept?
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+                <div class="faq-answer">
+                    We accept all major credit and debit cards (Visa, Mastercard, Amex), as well as M-Pesa for East
+                    African customers. Enterprise clients can also pay via invoice.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    Are there transaction fees on ticket sales?
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+                <div class="faq-answer">
+                    Starter plans include a 5% platform fee per ticket sale. Pro and Enterprise plans reduce this to 2%
+                    and 0% respectively. Stripe payment processing fees apply separately.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    Can I host free events on the Starter plan?
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+                <div class="faq-answer">
+                    Absolutely. Free events have no platform fee regardless of your plan. The 5% fee only applies to
+                    paid ticket sales on the Starter plan.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    What happens to my events if I cancel?
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+                <div class="faq-answer">
+                    Your events and data remain accessible in read-only mode for 90 days after cancellation. You can
+                    export all your data at any time. After 90 days, inactive accounts are archived.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══ CTA ══ -->
+    <div class="pricing-cta">
+        <h2>Ready to Host Your<br><span class="gold">Next Great Event?</span></h2>
+        <p>Join thousands of organisers on EventSphere. Start free, no credit card needed.</p>
+        <div class="pricing-cta__btns">
+            {% if not user.is_authenticated %}
+            <a href="{% url 'register' %}" class="btn-gold">Start Free Today &rarr;</a>
+            <a href="{% url 'login' %}" class="btn-ghost">Sign In</a>
+            {% else %}
+            <a href="{% url 'organizer_dashboard' %}" class="btn-gold">Go to Dashboard &rarr;</a>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /* ── BILLING TOGGLE ── */
+    const toggle = document.getElementById('billingToggle');
+    const monthLabel = document.getElementById('monthlyLabel');
+    const annLabel = document.getElementById('annualLabel');
+    const proAmt = document.getElementById('proAmount');
+    const proPer = document.getElementById('proPeriod');
+    const proNote = document.getElementById('proNote');
+    const entAmt = document.getElementById('entAmount');
+    const entPer = document.getElementById('entPeriod');
+    const entNote = document.getElementById('entNote');
+
+    let annual = false;
+
+    toggle?.addEventListener('click', () => {
+        annual = !annual;
+        toggle.classList.toggle('annual', annual);
+        monthLabel.style.color = annual ? 'var(--muted)' : 'var(--text)';
+        annLabel.style.color = annual ? 'var(--text)' : 'var(--muted)';
+
+        if (proAmt) {
+            proAmt.textContent = annual ? '$22' : '$29';
+            proPer.textContent = '/ month';
+            proNote.textContent = annual ? 'Billed annually · $264/year (save $84)' : 'Billed monthly · $348/year';
+        }
+        if (entAmt) {
+            entAmt.textContent = annual ? '$74' : '$99';
+            entPer.textContent = '/ month';
+            entNote.textContent = annual ? 'Billed annually · $888/year (save $300)' : 'Billed monthly · $1,188/year';
+        }
+    });
+
+    /* ── FAQ ACCORDION ── */
+    document.querySelectorAll('.faq-question').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const item = btn.closest('.faq-item');
+            const isOpen = item.classList.contains('open');
+            document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+            if (!isOpen) item.classList.add('open');
+        });
+    });
+</script>
+
+{% endblock %}
