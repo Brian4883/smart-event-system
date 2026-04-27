@@ -1,0 +1,6 @@
+path('admin/users/', admin_users, name='admin_users'),
+path('admin/events/', admin_events, name='admin_events'),
+path('admin/report/', generate_report, name='admin_report'),
+path('admin/export-users/', export_users_csv, name='export_users'),
+path('admin/change-role/<int:user_id>/', change_user_role, name='change_user_role'),
+    path('admin/delete-user/<int:user_id>/', delete_user, name='delete_user'),

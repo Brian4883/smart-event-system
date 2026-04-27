@@ -1,0 +1,38 @@
+{% extends 'admin/base_admin.html' %}
+{% block admin_content %}
+<h2>Admin Dashboard</h2>
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 bg-primary text-white">Users: {{ total_users }}</div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 bg-success text-white">Events: {{ total_events }}</div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 bg-warning text-white">Pending: {{ pending_events }}</div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 bg-info text-white">Approved: {{ approved_events }}</div>
+    </div>
+</div>
+
+<canvas id="eventsChart" height="100"></canvas>
+
+<script>
+    var ctx = document.getElementById('eventsChart').getContext('2d');
+    var chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Total Events', 'Approved', 'Pending'],
+            datasets: [{
+                label: 'Event Stats',
+                data: [{{ total_events }}, {{ approved_events }}, {{ pending_events }}],
+    backgroundColor: ['#0d6efd', '#198754', '#ffc107']
+        }]
+    },
+    options: {
+        responsive: true
+    }
+});
+</script>
+{% endblock %}

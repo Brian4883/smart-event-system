@@ -5,136 +5,706 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Event System</title>
+    <title>{% block title %}EventSphere{% endblock %}</title>
 
-    <!-- Bootstrap CSS -->
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Outfit:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap + Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
+    <!-- Your custom CSS -->
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+
     <style>
+        /* ══════════════════════════════════════════
+       DESIGN TOKENS  (keep in sync with home_v2)
+    ══════════════════════════════════════════ */
+        :root {
+            --bg: #07090f;
+            --surface: #0e1118;
+            --surface2: #141720;
+            --border: rgba(255, 255, 255, .08);
+            --gold: #c9a84c;
+            --gold-lt: #e8cc7a;
+            --teal: #2dd4c0;
+            --text: #f0ede8;
+            --muted: rgba(240, 237, 232, .45);
+            --sidebar-w: 240px;
+            --nav-h: 62px;
+            --radius: 10px;
+            --ease: .3s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            background: #f5f7fa;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 400;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .sidebar {
-            height: 100vh;
-            background: #343a40;
-            padding-top: 20px;
+        /* subtle grain overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+            opacity: .022;
+            pointer-events: none;
+            z-index: 9998;
         }
 
-        .sidebar a {
-            color: white;
+        /* ══════════════════════════════════════════
+       TOP NAVBAR
+    ══════════════════════════════════════════ */
+        .es-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-h);
+            z-index: 500;
             display: flex;
             align-items: center;
-            padding: 12px 20px;
+            justify-content: space-between;
+            padding: 0 1.6rem;
+            background: rgba(7, 9, 15, .82);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            transition: background var(--ease);
+        }
+
+        /* left side: hamburger + brand */
+        .es-navbar__left {
+            display: flex;
+            align-items: center;
+            gap: .9rem;
+        }
+
+        .es-hamburger {
+            display: none;
+            /* shown on mobile */
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 1.25rem;
+            padding: .3rem;
+            transition: color .2s;
+        }
+
+        .es-hamburger:hover {
+            color: var(--text);
+        }
+
+        .es-brand {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold);
             text-decoration: none;
+            letter-spacing: .03em;
+            white-space: nowrap;
+        }
+
+        .es-brand span {
+            color: var(--text);
+        }
+
+        /* centre nav links (guests) */
+        .es-navbar__links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .es-navbar__links a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: .82rem;
             font-weight: 500;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            transition: color .2s;
         }
 
-        .sidebar a i {
-            margin-right: 10px;
+        .es-navbar__links a:hover {
+            color: var(--text);
         }
 
-        .sidebar a:hover {
-            background: #495057;
-            text-decoration: none;
+        /* right side: user info + actions */
+        .es-navbar__right {
+            display: flex;
+            align-items: center;
+            gap: .9rem;
         }
 
-        .dropdown-menu a i {
-            margin-right: 8px;
+        .es-navbar__greeting {
+            font-size: .85rem;
+            color: var(--muted);
         }
 
-        .badge-notification {
+        .es-navbar__greeting strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* notification bell */
+        .es-notif-btn {
+            position: relative;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--muted);
+            font-size: 1.1rem;
+            padding: .3rem .45rem;
+            border-radius: 8px;
+            transition: color .2s, background .2s;
+        }
+
+        .es-notif-btn:hover {
+            color: var(--gold);
+            background: rgba(201, 168, 76, .1);
+        }
+
+        .es-notif-badge {
             position: absolute;
-            top: 8px;
-            right: 12px;
-            font-size: 0.75rem;
+            top: 1px;
+            right: 1px;
+            width: 16px;
+            height: 16px;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .6rem;
+            font-weight: 700;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px solid var(--bg);
         }
 
-        @media (max-width: 768px) {
-            .sidebar {
-                height: auto;
+        .btn-nav-gold {
+            background: var(--gold);
+            color: #07090f;
+            padding: .48rem 1.3rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: .82rem;
+            text-decoration: none;
+            white-space: nowrap;
+            border: none;
+            cursor: pointer;
+            transition: background .2s, transform .15s;
+        }
+
+        .btn-nav-gold:hover {
+            background: var(--gold-lt);
+            transform: translateY(-1px);
+            color: #07090f;
+        }
+
+        .btn-nav-ghost {
+            background: transparent;
+            color: var(--text);
+            padding: .48rem 1.3rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: .82rem;
+            text-decoration: none;
+            white-space: nowrap;
+            border: 1px solid var(--border);
+            transition: border-color .2s, background .2s;
+        }
+
+        .btn-nav-ghost:hover {
+            border-color: rgba(255, 255, 255, .3);
+            background: rgba(255, 255, 255, .05);
+            color: var(--text);
+        }
+
+        /* ══════════════════════════════════════════
+       LAYOUT SHELL
+    ══════════════════════════════════════════ */
+        .es-shell {
+            display: flex;
+            padding-top: var(--nav-h);
+            min-height: 100vh;
+        }
+
+        /* ══════════════════════════════════════════
+       SIDEBAR
+    ══════════════════════════════════════════ */
+        .es-sidebar {
+            width: var(--sidebar-w);
+            flex-shrink: 0;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            height: calc(100vh - var(--nav-h));
+            position: sticky;
+            top: var(--nav-h);
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 1.4rem 0 2rem;
+            transition: transform var(--ease);
+        }
+
+        /* scrollbar */
+        .es-sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .es-sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .es-sidebar::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .sidebar-section-label {
+            font-size: .65rem;
+            font-weight: 600;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 1.2rem 1.4rem .5rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: .8rem;
+            padding: .72rem 1.4rem;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: .88rem;
+            font-weight: 500;
+            border-left: 3px solid transparent;
+            transition: color .2s, background .2s, border-color .2s;
+            position: relative;
+        }
+
+        .sidebar-link i {
+            font-size: 1rem;
+            flex-shrink: 0;
+            width: 18px;
+            text-align: center;
+        }
+
+        .sidebar-link:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, .04);
+        }
+
+        .sidebar-link.active {
+            color: var(--gold);
+            background: rgba(201, 168, 76, .07);
+            border-left-color: var(--gold);
+        }
+
+        .sidebar-link.active i {
+            color: var(--gold);
+        }
+
+        /* badge inside sidebar link */
+        .sidebar-link .s-badge {
+            margin-left: auto;
+            background: #e74c3c;
+            color: #fff;
+            font-size: .6rem;
+            font-weight: 700;
+            padding: .15rem .45rem;
+            border-radius: 40px;
+        }
+
+        .sidebar-divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: .8rem 1.2rem;
+        }
+
+        /* logout at bottom of sidebar */
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 1rem;
+        }
+
+        /* ══════════════════════════════════════════
+       MAIN CONTENT AREA
+    ══════════════════════════════════════════ */
+        .es-main {
+            flex: 1;
+            min-width: 0;
+            padding: 2.2rem 2.4rem;
+            background: var(--bg);
+        }
+
+        /* ══════════════════════════════════════════
+       TOAST / ALERT MESSAGES
+    ══════════════════════════════════════════ */
+        .es-messages {
+            position: fixed;
+            top: calc(var(--nav-h) + .8rem);
+            right: 1.2rem;
+            z-index: 600;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+            max-width: 360px;
+            width: 100%;
+        }
+
+        .es-toast {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--teal);
+            border-radius: var(--radius);
+            padding: .85rem 1.1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: .7rem;
+            font-size: .88rem;
+            color: var(--text);
+            backdrop-filter: blur(16px);
+            animation: toastIn .35s ease forwards;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
+        }
+
+        .es-toast.error {
+            border-left-color: #e74c3c;
+        }
+
+        .es-toast.warning {
+            border-left-color: var(--gold);
+        }
+
+        .es-toast.success {
+            border-left-color: var(--teal);
+        }
+
+        .es-toast i {
+            font-size: 1rem;
+            margin-top: .05rem;
+            flex-shrink: 0;
+        }
+
+        .es-toast.error i {
+            color: #e74c3c;
+        }
+
+        .es-toast.warning i {
+            color: var(--gold);
+        }
+
+        .es-toast.success i {
+            color: var(--teal);
+        }
+
+        .es-toast__close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: .85rem;
+            padding: 0 .2rem;
+            transition: color .2s;
+            flex-shrink: 0;
+        }
+
+        .es-toast__close:hover {
+            color: var(--text);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ══════════════════════════════════════════
+       MOBILE SIDEBAR OVERLAY
+    ══════════════════════════════════════════ */
+        .es-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            z-index: 490;
+            backdrop-filter: blur(3px);
+        }
+
+        .es-overlay.open {
+            display: block;
+        }
+
+        /* ══════════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════════ */
+        @media (max-width: 900px) {
+            .es-sidebar {
+                position: fixed;
+                top: var(--nav-h);
+                left: 0;
+                height: calc(100vh - var(--nav-h));
+                z-index: 495;
+                transform: translateX(-100%);
+            }
+
+            .es-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .es-hamburger {
+                display: flex;
+                align-items: center;
+            }
+
+            .es-navbar__links {
+                display: none;
+            }
+
+            .es-main {
+                padding: 1.4rem 1rem;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .es-navbar__greeting {
+                display: none;
+            }
+
+            .btn-nav-ghost.hide-xs {
+                display: none;
             }
         }
     </style>
+
+    {% block extra_head %}{% endblock %}
 </head>
 
 <body>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'home' %}">Smart Event</a>
+    <!-- ══════════════════════════════════════════
+       NAVBAR
+  ══════════════════════════════════════════ -->
+    <nav class="es-navbar">
+
+        <div class="es-navbar__left">
+            {% if user.is_authenticated %}
+            <button class="es-hamburger" id="sidebarToggle" aria-label="Toggle menu">
+                <i class="bi bi-list"></i>
+            </button>
+            {% endif %}
+            <a href="{% url 'home' %}" class="es-brand">Event<span>Sphere</span></a>
         </div>
+
+        {% if not user.is_authenticated %}
+        <div class="es-navbar__links">
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'event_list' %}">Events</a>
+            <a href="{% url 'pricing' %}">Pricing</a>
+            <a href="{% url 'about' %}">About</a>
+        </div>
+        {% endif %}
+
+        <div class="es-navbar__right">
+            {% if user.is_authenticated %}
+
+            <span class="es-navbar__greeting">
+                Hello, <strong>{{ user.username }}</strong>
+            </span>
+
+            <!-- Notification bell -->
+            <button class="es-notif-btn" title="Notifications">
+                <i class="bi bi-bell"></i>
+                {% if unread_notifications > 0 %}
+                <span class="es-notif-badge">{{ unread_notifications }}</span>
+                {% endif %}
+            </button>
+
+            <a href="{% url 'logout' %}" class="btn-nav-ghost">Logout</a>
+
+            {% else %}
+
+            <a href="{% url 'login' %}" class="btn-nav-ghost hide-xs">Sign In</a>
+            <a href="{% url 'register' %}" class="btn-nav-gold">Get Started</a>
+
+            {% endif %}
+        </div>
+
     </nav>
 
-    <div class="container-fluid">
-        <div class="row">
+    <!-- ══════════════════════════════════════════
+       DJANGO MESSAGES → TOASTS
+  ══════════════════════════════════════════ -->
+    {% if messages %}
+    <div class="es-messages" id="esMessages">
+        {% for message in messages %}
+        <div class="es-toast {% if message.tags %}{{ message.tags }}{% endif %}">
+            <i class="bi
+        {% if 'error' in message.tags %}bi-x-circle-fill
+        {% elif 'warning' in message.tags %}bi-exclamation-triangle-fill
+        {% else %}bi-check-circle-fill{% endif %}">
+            </i>
+            <span>{{ message }}</span>
+            <button class="es-toast__close" onclick="this.parentElement.remove()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-            {% if user.is_authenticated %}
-            <!-- Sidebar -->
-            <div class="col-md-2 sidebar">
-                <h5 class="text-white text-center mb-3">Menu</h5>
-                <hr style="color:white">
+    <!-- Mobile overlay -->
+    <div class="es-overlay" id="sidebarOverlay"></div>
 
-                <a href="{% url 'profile' %}"><i class="bi bi-person"></i> Profile</a>
+    <!-- ══════════════════════════════════════════
+       LAYOUT SHELL
+  ══════════════════════════════════════════ -->
+    <div class="es-shell">
 
-                {% if user.role == "admin" %}
-                <a href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2"></i> Admin Dashboard</a>
-                {% elif user.role == "organizer" %}
-                <a href="{% url 'organizer_dashboard' %}"><i class="bi bi-calendar-event"></i> Organizer Dashboard</a>
-                {% else %}
-                <a href="{% url 'attendee_dashboard' %}"><i class="bi bi-grid"></i> Dashboard</a>
-                {% endif %}
+        <!-- ── SIDEBAR (authenticated only) ── -->
+        {% if user.is_authenticated %}
+        <aside class="es-sidebar" id="esSidebar">
 
-                <a href="#"><i class="bi bi-ticket-perforated"></i> Events</a>
-                <a href="#"><i class="bi bi-credit-card-2-front"></i> Tickets</a>
+            <span class="sidebar-section-label">Navigation</span>
 
-                <!-- Settings Dropdown -->
-                <div class="dropdown mt-3 position-relative">
-                    <button class="btn btn-secondary w-100 dropdown-toggle text-start position-relative" type="button"
-                        id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-gear-fill me-2"></i> Settings
+            <a href="{% url 'profile' %}" class="sidebar-link" data-match="profile">
+                <i class="bi bi-person-circle"></i> My Profile
+            </a>
 
-                        {% if unread_notifications > 0 %}
-                        <span class="badge rounded-pill bg-danger badge-notification">
-                            {{ unread_notifications }}
-                        </span>
-                        {% endif %}
-                    </button>
-
-                    <ul class="dropdown-menu w-100" aria-labelledby="settingsDropdown">
-                        <li>
-                            <a class="dropdown-item bg-primary text-white" href="{% url 'update_profile' %}">
-                                <i class="bi bi-person"></i> Profile Settings
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item bg-success text-white" href="{% url 'password_reset' %}">
-                                <i class="bi bi-key"></i> Change Password
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item bg-danger text-white" href="{% url 'logout' %}">
-                                <i class="bi bi-box-arrow-right"></i> Logout
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+            {% if user.role == "admin" %}
+            <a href="{% url 'admin_dashboard' %}" class="sidebar-link" data-match="admin">
+                <i class="bi bi-speedometer2"></i> Admin Dashboard
+            </a>
+            {% elif user.role == "organizer" %}
+            <a href="{% url 'organizer_dashboard' %}" class="sidebar-link" data-match="organizer">
+                <i class="bi bi-calendar-event"></i> Organizer Dashboard
+            </a>
+            {% else %}
+            <a href="{% url 'attendee_dashboard' %}" class="sidebar-link" data-match="attendee">
+                <i class="bi bi-grid-1x2"></i> My Dashboard
+            </a>
             {% endif %}
 
-            <!-- Main Content -->
-            <div class="{% if user.is_authenticated %}col-md-10{% else %}col-md-12{% endif %} p-4">
-                {% block content %}
-                {% endblock %}
+            <hr class="sidebar-divider">
+            <span class="sidebar-section-label">Events</span>
+
+            <a href="{% url 'event_list' %}" class="sidebar-link" data-match="events">
+                <i class="bi bi-ticket-perforated"></i> Browse Events
+            </a>
+            <a href="{% url 'my_tickets' %}" class="sidebar-link" data-match="tickets">
+                <i class="bi bi-credit-card-2-front"></i> My Tickets
+            </a>
+
+            <hr class="sidebar-divider">
+            <span class="sidebar-section-label">Account</span>
+
+            <a href="{% url 'update_profile' %}" class="sidebar-link" data-match="settings">
+                <i class="bi bi-gear"></i> Profile Settings
+                {% if unread_notifications > 0 %}
+                <span class="s-badge">{{ unread_notifications }}</span>
+                {% endif %}
+            </a>
+            <a href="{% url 'password_reset' %}" class="sidebar-link">
+                <i class="bi bi-key"></i> Change Password
+            </a>
+
+            <div class="sidebar-footer">
+                <hr class="sidebar-divider">
+                <a href="{% url 'logout' %}" class="sidebar-link">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
             </div>
 
-        </div>
-    </div>
+        </aside>
+        {% endif %}
 
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- ── MAIN CONTENT ── -->
+        <main class="es-main">
+            {% block content %}{% endblock %}
+        </main>
+
+    </div><!-- /es-shell -->
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // ── Sidebar toggle (mobile) ──────────────────
+        const toggleBtn = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('esSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        function openSidebar() { sidebar?.classList.add('open'); overlay?.classList.add('open'); }
+        function closeSidebar() { sidebar?.classList.remove('open'); overlay?.classList.remove('open'); }
+
+        toggleBtn?.addEventListener('click', () =>
+            sidebar?.classList.contains('open') ? closeSidebar() : openSidebar()
+        );
+        overlay?.addEventListener('click', closeSidebar);
+
+        // ── Active sidebar link ──────────────────────
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            if (link.getAttribute('href') && currentPath.startsWith(link.getAttribute('href')) && link.getAttribute('href') !== '/') {
+                link.classList.add('active');
+            }
+        });
+
+        // ── Auto-dismiss toasts after 5s ────────────
+        document.querySelectorAll('.es-toast').forEach((toast, i) => {
+            setTimeout(() => {
+                toast.style.transition = 'opacity .4s ease, transform .4s ease';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(20px)';
+                setTimeout(() => toast.remove(), 400);
+            }, 5000 + i * 300);
+        });
+
+        // ── Navbar scroll tint ───────────────────────
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('.es-navbar');
+            if (window.scrollY > 20) {
+                nav.style.background = 'rgba(7,9,15,.96)';
+            } else {
+                nav.style.background = 'rgba(7,9,15,.82)';
+            }
+        });
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
 
 </body>
 

@@ -1,0 +1,38 @@
+{% extends 'admin/base_admin.html' %}
+{% block admin_content %}
+<h2>All Events</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Organizer</th>
+            <th>Date</th>
+            <th>Approved</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for event in events %}
+        <tr>
+            <td>{{ event.title }}</td>
+            <td>{{ event.organizer.username }}</td>
+            <td>{{ event.date }}</td>
+            <td>
+                {% if event.is_approved %}
+                <span class="badge bg-success">Yes</span>
+                {% else %}
+                <span class="badge bg-warning">Pending</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if not event.is_approved %}
+                <a href="{% url 'approve_event' event.id %}" class="btn btn-sm btn-success">Approve</a>
+                {% endif %}
+                <a href="{% url 'event_detail' event.id %}" class="btn btn-sm btn-info">View</a>
+                <a href="{% url 'delete_event' event.id %}" class="btn btn-sm btn-danger">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

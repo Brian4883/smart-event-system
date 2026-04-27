@@ -1,13 +1,24 @@
 # users/views.py
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from .forms import CustomUserCreationForm, UpdateProfileForm
 from django.contrib.auth.forms import PasswordResetForm
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponse
+import csv
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+from django.shortcuts import get_object_or_404
+
+from events.models import Event
+from tickets.models import Ticket 
+from django.utils.timezone import now
+from events.models import Event
+
+User = get_user_model()
 
 
 def register_view(request):
@@ -80,22 +91,191 @@ def password_reset_view(request):
 
 @login_required
 def admin_dashboard(request):
-
     if request.user.role != "admin":
-        return HttpResponseForbidden("You are not allowed here")
+        return HttpResponseForbidden()
 
-    return render(request, "dashboards/admin_dashboard.html")
+    total_users = User.objects.count()
+    total_organizers = User.objects.filter(role="organizer").count()
+
+    unverified_organizers = User.objects.filter(role="organizer", is_verified=False)
+
+    pending_events = Event.objects.filter(is_approved=False)
+    approved_events = Event.objects.filter(is_approved=True)
+
+    context = {
+        "total_users": total_users,
+        "total_organizers": total_organizers,
+        "unverified_organizers": unverified_organizers,
+        "pending_events": pending_events,
+        "approved_events": approved_events,
+    }
+
+    return render(request, "dashboards/admin_dashboard.html", context)
+
+
+@login_required
+def admin_users(request):
+    if request.user.role != "admin":
+        return HttpResponseForbidden("Unauthorized")
+
+    users = User.objects.all()
+    return render(request, "admin/users.html", {"users": users})
+
+
+@login_required
+def verify_organizer(request, user_id):
+    if request.user.role != "admin":
+        return HttpResponseForbidden("Not allowed")
+
+    user = get_object_or_404(User, id=user_id)
+
+    # Only verify organizers
+    if user.role == "organizer":
+        user.is_verified = True
+        user.save()
+        messages.success(request, f"{user.username} has been verified.")
+
+    return redirect('admin_dashboard')
+
+
+@login_required
+def change_user_role(request, user_id):
+    if request.user.role != "admin":
+        return HttpResponseForbidden("Unauthorized")
+
+    user = User.objects.get(id=user_id)
+
+    if request.method == "POST":
+        new_role = request.POST.get("role")
+        user.role = new_role
+        user.save()
+        messages.success(request, "User role updated successfully")
+
+    return redirect("admin_users")
+
+
+@login_required
+def admin_events(request):
+    if request.user.role != "admin":
+        return HttpResponseForbidden("Unauthorized")
+
+    events = Event.objects.all()
+    return render(request, "admin/events.html", {"events": events})
+
+
+@login_required
+def approve_event(request, event_id):
+    if request.user.role != "admin":
+        return HttpResponseForbidden()
+
+    event = get_object_or_404(Event, id=event_id)
+    event.is_approved = True
+    event.save()
+
+    messages.success(request, "Event approved successfully.")
+    return redirect('admin_dashboard')
+
+
+@login_required
+def download_report(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="events_report.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Title', 'Organizer', 'Date'])
+
+    events = Event.objects.all()
+
+    for event in events:
+        writer.writerow([event.title, event.organizer.username, event.start_date])
+
+    return response
+
+
+@login_required
+def generate_report(request):
+    if request.user.role != "admin":
+        return HttpResponseForbidden("Unauthorized")
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="report.pdf"'
+
+    doc = SimpleDocTemplate(response)
+    styles = getSampleStyleSheet()
+
+    content = []
+
+    content.append(Paragraph("Smart Event System Report", styles['Title']))
+
+    total_users = User.objects.count()
+    total_events = Event.objects.count()
+
+    content.append(Paragraph(f"Total Users: {total_users}", styles['Normal']))
+    content.append(Paragraph(f"Total Events: {total_events}", styles['Normal']))
+
+    doc.build(content)
+
+    return response
+
+
+@login_required
+def export_users_csv(request):
+    if request.user.role != "admin":
+        return HttpResponseForbidden("Unauthorized")
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="users.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Username', 'Email', 'Role'])
+
+    for user in User.objects.all():
+        writer.writerow([user.username, user.email, user.role])
+
+    return response
+
+
+@login_required
+def delete_user(request, user_id):
+    if request.user.role != "admin":
+        return HttpResponseForbidden("Unauthorized")
+
+    user = User.objects.get(id=user_id)
+    user.delete()
+
+    messages.success(request, "User deleted successfully")
+    return redirect("admin_users")
 
 
 @login_required
 def organizer_dashboard(request):
-    return render(request, "dashboards/organizer_dashboard.html")
+    events = Event.objects.filter(organizer=request.user)
+
+    approved = events.filter(is_approved=True)
+    pending = events.filter(is_approved=False)
+
+    context = {
+        "approved_events": approved,
+        "pending_events": pending
+    }
+
+    return render(request, "dashboards/organizer_dashboard.html", context)
 
 
 @login_required
 def attendee_dashboard(request):
-    return render(request, "dashboards/attendee_dashboard.html")
+    upcoming_events = Event.objects.filter(start_date__gte=now()).order_by('start_date')[:6]
 
+    tickets = Ticket.objects.filter(user=request.user) if 'Ticket' in globals() else []
+
+    context = {
+        'upcoming_events': upcoming_events,
+        'tickets': tickets,
+        'tickets_count': len(tickets),
+        'attended_count': 0, 
+    }
+
+    return render(request, "dashboards/attendee_dashboard.html", context)
 
 @login_required
 def profile(request):

@@ -1,0 +1,1005 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Create Event — EventSphere{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ══════════════════════════════════════════
+     PAGE SHELL
+  ══════════════════════════════════════════ */
+    .create-page {
+        padding: 2rem 0 5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* ambient blobs */
+    .create-page::before {
+        content: '';
+        position: absolute;
+        width: 520px;
+        height: 520px;
+        top: -200px;
+        right: -120px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(201, 168, 76, .11) 0%, transparent 70%);
+        pointer-events: none;
+        animation: blobPulse 10s ease-in-out infinite alternate;
+    }
+
+    .create-page::after {
+        content: '';
+        position: absolute;
+        width: 380px;
+        height: 380px;
+        bottom: -160px;
+        left: -80px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(45, 212, 192, .08) 0%, transparent 70%);
+        pointer-events: none;
+        animation: blobPulse 8s ease-in-out infinite alternate-reverse;
+    }
+
+    @keyframes blobPulse {
+        from {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        to {
+            transform: scale(1.18);
+            opacity: .6;
+        }
+    }
+
+    /* ══════════════════════════════════════════
+     PAGE HEADER
+  ══════════════════════════════════════════ */
+    .create-header {
+        margin-bottom: 2.2rem;
+        animation: fadeUp .6s ease both;
+    }
+
+    .page-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        font-size: .72rem;
+        font-weight: 600;
+        letter-spacing: .14em;
+        text-transform: uppercase;
+        color: var(--teal);
+        margin-bottom: .8rem;
+    }
+
+    .page-eyebrow::before {
+        content: '';
+        width: 20px;
+        height: 1.5px;
+        background: var(--teal);
+        display: inline-block;
+    }
+
+    .page-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(2rem, 4vw, 2.8rem);
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1.1;
+        margin-bottom: .4rem;
+    }
+
+    .page-title .gold {
+        color: var(--gold);
+    }
+
+    .page-sub {
+        font-size: .92rem;
+        color: var(--muted);
+        font-weight: 300;
+        line-height: 1.7;
+    }
+
+    /* progress steps */
+    .create-steps {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        margin-top: 1.5rem;
+        animation: fadeUp .6s .15s ease both;
+    }
+
+    .c-step {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        font-size: .78rem;
+        font-weight: 500;
+        color: var(--muted);
+    }
+
+    .c-step__num {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .72rem;
+        font-weight: 700;
+        transition: background .3s, border-color .3s, color .3s;
+    }
+
+    .c-step.active .c-step__num {
+        background: var(--teal);
+        border-color: var(--teal);
+        color: #07090f;
+    }
+
+    .c-step.done .c-step__num {
+        background: var(--gold);
+        border-color: var(--gold);
+        color: #07090f;
+    }
+
+    .c-step.active {
+        color: var(--text);
+    }
+
+    .c-step__line {
+        width: 40px;
+        height: 1.5px;
+        background: var(--border);
+        margin: 0 .4rem;
+    }
+
+    .c-step.done+.c-step__line {
+        background: var(--gold);
+    }
+
+    /* ══════════════════════════════════════════
+     FORM CARD
+  ══════════════════════════════════════════ */
+    .create-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 32px 80px rgba(0, 0, 0, .45);
+        animation: cardIn .65s cubic-bezier(.22, 1, .36, 1) both;
+        position: relative;
+        z-index: 2;
+    }
+
+    @keyframes cardIn {
+        from {
+            opacity: 0;
+            transform: translateY(32px) scale(.97);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* shimmer top bar */
+    .create-card__bar {
+        height: 4px;
+        background: linear-gradient(90deg, var(--teal), var(--gold), var(--teal));
+        background-size: 200% 100%;
+        animation: shimmer 3s linear infinite;
+    }
+
+    @keyframes shimmer {
+        from {
+            background-position: 200% center;
+        }
+
+        to {
+            background-position: -200% center;
+        }
+    }
+
+    /* ── SECTION HEADERS inside form ── */
+    .form-section {
+        padding: 2rem 2.4rem 0;
+        animation: fadeUp .5s ease both;
+    }
+
+    .form-section:first-of-type {
+        padding-top: 2.2rem;
+    }
+
+    .form-section__title {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .13em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 1.4rem;
+        padding-bottom: .75rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .form-section__title i {
+        width: 28px;
+        height: 28px;
+        background: rgba(201, 168, 76, .1);
+        border: 1px solid rgba(201, 168, 76, .2);
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .85rem;
+        flex-shrink: 0;
+    }
+
+    /* ── FORM GRID ── */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem 1.6rem;
+        padding: 0 2.4rem;
+    }
+
+    .form-grid.cols-1 {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid.cols-3 {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    /* ── FORM GROUP ── */
+    .es-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: .45rem;
+        animation: fadeUp .5s ease both;
+    }
+
+    /* stagger */
+    .es-form-group:nth-child(1) {
+        animation-delay: .25s;
+    }
+
+    .es-form-group:nth-child(2) {
+        animation-delay: .32s;
+    }
+
+    .es-form-group:nth-child(3) {
+        animation-delay: .39s;
+    }
+
+    .es-form-group:nth-child(4) {
+        animation-delay: .46s;
+    }
+
+    .es-form-group:nth-child(5) {
+        animation-delay: .53s;
+    }
+
+    .es-form-group:nth-child(6) {
+        animation-delay: .60s;
+    }
+
+    .es-form-group:nth-child(7) {
+        animation-delay: .67s;
+    }
+
+    .es-form-group:nth-child(8) {
+        animation-delay: .74s;
+    }
+
+    .es-form-group:nth-child(9) {
+        animation-delay: .81s;
+    }
+
+    .es-form-group:nth-child(10) {
+        animation-delay: .88s;
+    }
+
+    .es-label {
+        font-size: .74rem;
+        font-weight: 600;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: .35rem;
+    }
+
+    .es-label i {
+        font-size: .78rem;
+        color: var(--teal);
+    }
+
+    .es-label .required {
+        color: #e74c3c;
+        margin-left: .1rem;
+    }
+
+    .es-input,
+    .es-textarea,
+    .es-select {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: .8rem 1rem;
+        color: var(--text);
+        font-family: 'Outfit', sans-serif;
+        font-size: .9rem;
+        outline: none;
+        transition: border-color .25s, box-shadow .25s, background .25s;
+        width: 100%;
+    }
+
+    .es-input::placeholder,
+    .es-textarea::placeholder {
+        color: var(--muted);
+    }
+
+    .es-input:focus,
+    .es-textarea:focus,
+    .es-select:focus {
+        border-color: var(--teal);
+        box-shadow: 0 0 0 3px rgba(45, 212, 192, .1);
+        background: rgba(45, 212, 192, .02);
+    }
+
+    .es-input.error,
+    .es-textarea.error,
+    .es-select.error {
+        border-color: #e74c3c;
+    }
+
+    .es-textarea {
+        resize: vertical;
+        min-height: 110px;
+    }
+
+    .es-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%23888' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        padding-right: 2.5rem;
+        cursor: pointer;
+    }
+
+    .es-select option {
+        background: var(--surface2);
+    }
+
+    /* file upload */
+    .es-file-wrap {
+        position: relative;
+        background: var(--surface2);
+        border: 1.5px dashed var(--border);
+        border-radius: 10px;
+        padding: 1.4rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color .25s, background .25s;
+    }
+
+    .es-file-wrap:hover {
+        border-color: var(--teal);
+        background: rgba(45, 212, 192, .03);
+    }
+
+    .es-file-wrap input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+    }
+
+    .es-file-wrap i {
+        font-size: 1.5rem;
+        color: var(--teal);
+        margin-bottom: .4rem;
+        display: block;
+    }
+
+    .es-file-label {
+        font-size: .82rem;
+        color: var(--muted);
+    }
+
+    .es-file-label span {
+        color: var(--teal);
+        font-weight: 600;
+    }
+
+    .es-file-name {
+        font-size: .78rem;
+        color: var(--gold);
+        margin-top: .3rem;
+        display: none;
+    }
+
+    /* field error */
+    .es-field-error {
+        font-size: .76rem;
+        color: #e74c3c;
+        display: flex;
+        align-items: center;
+        gap: .3rem;
+    }
+
+    /* hint text */
+    .es-hint {
+        font-size: .74rem;
+        color: var(--muted);
+        line-height: 1.5;
+    }
+
+    /* ══════════════════════════════════════════
+     FORM FOOTER
+  ══════════════════════════════════════════ */
+    .create-card__footer {
+        padding: 2rem 2.4rem 2.4rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+        animation: fadeUp .5s .9s ease both;
+    }
+
+    .footer-note {
+        font-size: .8rem;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
+
+    .footer-note i {
+        color: var(--teal);
+    }
+
+    .create-card__actions {
+        display: flex;
+        gap: .85rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-draft {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 40px;
+        padding: .82rem 1.8rem;
+        font-family: 'Outfit', sans-serif;
+        font-size: .88rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: border-color .2s, background .2s, transform .15s;
+    }
+
+    .btn-draft:hover {
+        border-color: rgba(255, 255, 255, .25);
+        background: rgba(255, 255, 255, .05);
+        transform: translateY(-1px);
+    }
+
+    .btn-submit {
+        background: var(--gold);
+        color: #07090f;
+        border: none;
+        border-radius: 40px;
+        padding: .85rem 2.2rem;
+        font-family: 'Outfit', sans-serif;
+        font-size: .92rem;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: background .2s, transform .15s, box-shadow .2s;
+    }
+
+    .btn-submit::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, .18), transparent);
+        opacity: 0;
+        transition: opacity .2s;
+    }
+
+    .btn-submit:hover {
+        background: var(--gold-lt);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 28px rgba(201, 168, 76, .32);
+    }
+
+    .btn-submit:hover::after {
+        opacity: 1;
+    }
+
+    .btn-submit:active {
+        transform: translateY(0);
+    }
+
+    /* loading state */
+    .btn-submit.loading {
+        pointer-events: none;
+        opacity: .65;
+    }
+
+    .btn-submit.loading .btn-label {
+        opacity: 0;
+    }
+
+    .btn-submit.loading .btn-spin {
+        display: block;
+    }
+
+    .btn-spin {
+        display: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(7, 9, 15, .3);
+        border-top-color: #07090f;
+        border-radius: 50%;
+        animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: translate(-50%, -50%) rotate(360deg);
+        }
+    }
+
+    /* ══════════════════════════════════════════
+     IMAGE PREVIEW
+  ══════════════════════════════════════════ */
+    .img-preview-wrap {
+        display: none;
+        margin-top: .75rem;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        position: relative;
+    }
+
+    .img-preview-wrap img {
+        width: 100%;
+        max-height: 180px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .img-preview-clear {
+        position: absolute;
+        top: .5rem;
+        right: .5rem;
+        background: rgba(7, 9, 15, .75);
+        backdrop-filter: blur(8px);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .75rem;
+        cursor: pointer;
+        transition: color .2s, border-color .2s;
+    }
+
+    .img-preview-clear:hover {
+        color: #e74c3c;
+        border-color: #e74c3c;
+    }
+
+    /* ══════════════════════════════════════════
+     ANIMATIONS
+  ══════════════════════════════════════════ */
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(14px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ══════════════════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════════════════ */
+    @media (max-width: 700px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-grid.cols-3 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .form-section,
+        .form-grid {
+            padding-left: 1.4rem;
+            padding-right: 1.4rem;
+        }
+
+        .create-card__footer {
+            padding: 1.4rem;
+        }
+
+        .create-steps {
+            display: none;
+        }
+    }
+</style>
+
+<div class="create-page">
+
+    <!-- ── PAGE HEADER ── -->
+    <div class="create-header">
+        <div class="page-eyebrow">Organizer Tools</div>
+        <h1 class="page-title">Create a <span class="gold">New Event</span></h1>
+        <p class="page-sub">Fill in the details below and submit for review. Your event goes live after approval.</p>
+
+        <!-- progress steps -->
+        <div class="create-steps">
+            <div class="c-step done">
+                <div class="c-step__num"><i class="bi bi-check"></i></div>
+                <span>Account</span>
+            </div>
+            <div class="c-step__line"></div>
+            <div class="c-step active">
+                <div class="c-step__num">2</div>
+                <span>Event Details</span>
+            </div>
+            <div class="c-step__line"></div>
+            <div class="c-step">
+                <div class="c-step__num">3</div>
+                <span>Review &amp; Publish</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── FORM CARD ── -->
+    <div class="create-card">
+
+        <div class="create-card__bar"></div>
+
+        <form method="POST" enctype="multipart/form-data" id="createEventForm" novalidate>
+            {% csrf_token %}
+
+            <!-- ── SECTION 1: Basic Info ── -->
+            <div class="form-section">
+                <div class="form-section__title">
+                    <i class="bi bi-info-circle"></i>
+                    Basic Information
+                </div>
+            </div>
+
+            <div class="form-grid">
+
+                <!-- Title -->
+                <div class="es-form-group" style="grid-column: 1 / -1;">
+                    <label class="es-label" for="{{ form.title.id_for_label }}">
+                        <i class="bi bi-card-heading"></i> Event Title <span class="required">*</span>
+                    </label>
+                    <input type="text" name="{{ form.title.html_name }}" id="{{ form.title.id_for_label }}"
+                        class="es-input {% if form.title.errors %}error{% endif %}"
+                        placeholder="Give your event a compelling name…" value="{{ form.title.value|default:'' }}"
+                        required>
+                    {% if form.title.errors %}
+                    <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{ form.title.errors|striptags
+                        }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Description -->
+                <div class="es-form-group" style="grid-column: 1 / -1;">
+                    <label class="es-label" for="{{ form.description.id_for_label }}">
+                        <i class="bi bi-text-left"></i> Description <span class="required">*</span>
+                    </label>
+                    <textarea name="{{ form.description.html_name }}" id="{{ form.description.id_for_label }}"
+                        class="es-textarea {% if form.description.errors %}error{% endif %}"
+                        placeholder="Describe your event — what attendees can expect, agenda highlights, special guests…"
+                        required>{{ form.description.value|default:'' }}</textarea>
+                    {% if form.description.errors %}
+                    <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{
+                        form.description.errors|striptags }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Category -->
+                <div class="es-form-group">
+                    <label class="es-label" for="{{ form.category.id_for_label }}">
+                        <i class="bi bi-tag"></i> Category
+                    </label>
+                    <select name="{{ form.category.html_name }}" id="{{ form.category.id_for_label }}"
+                        class="es-select {% if form.category.errors %}error{% endif %}">
+                        {{ form.category }}
+                    </select>
+                    {% if form.category.errors %}
+                    <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{
+                        form.category.errors|striptags }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Capacity -->
+                <div class="es-form-group">
+                    <label class="es-label" for="{{ form.capacity.id_for_label }}">
+                        <i class="bi bi-people"></i> Capacity
+                    </label>
+                    <input type="number" name="{{ form.capacity.html_name }}" id="{{ form.capacity.id_for_label }}"
+                        class="es-input {% if form.capacity.errors %}error{% endif %}"
+                        placeholder="Max attendees e.g. 200" value="{{ form.capacity.value|default:'' }}" min="1">
+                    {% if form.capacity.errors %}
+                    <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{
+                        form.capacity.errors|striptags }}</span>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <!-- ── SECTION 2: Date & Location ── -->
+            <div class="form-section" style="margin-top: 2rem;">
+                <div class="form-section__title">
+                    <i class="bi bi-calendar3"></i>
+                    Date, Time &amp; Location
+                </div>
+            </div>
+
+            <div class="form-grid">
+
+                <!-- Start Date -->
+                <div class="es-form-group">
+                    <label class="es-label" for="{{ form.start_date.id_for_label }}">
+                        <i class="bi bi-calendar-event"></i> Start Date &amp; Time <span class="required">*</span>
+                    </label>
+                    <input type="datetime-local" name="{{ form.start_date.html_name }}"
+                        id="{{ form.start_date.id_for_label }}"
+                        class="es-input {% if form.start_date.errors %}error{% endif %}"
+                        value="{{ form.start_date.value|default:'' }}" required>
+                    {% if form.start_date.errors %}
+                    <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{
+                        form.start_date.errors|striptags }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- End Date -->
+                <div class="es-form-group">
+                    <label class="es-label" for="{{ form.end_date.id_for_label }}">
+                        <i class="bi bi-calendar-check"></i> End Date &amp; Time
+                    </label>
+                    <input type="datetime-local" name="{{ form.end_date.html_name }}"
+                        id="{{ form.end_date.id_for_label }}"
+                        class="es-input {% if form.end_date.errors %}error{% endif %}"
+                        value="{{ form.end_date.value|default:'' }}">
+                    {% if form.end_date.errors %}
+                    <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{
+                        form.end_date.errors|striptags }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Location -->
+                <div class="es-form-group" style="grid-column: 1 / -1;">
+                    <label class="es-label" for="{{ form.location.id_for_label }}">
+                        <i class="bi bi-geo-alt"></i> Venue / Location <span class="required">*</span>
+                    </label>
+                    <input type="text" name="{{ form.location.html_name }}" id="{{ form.location.id_for_label }}"
+                        class="es-input {% if form.location.errors %}error{% endif %}"
+                        placeholder="e.g. Kenyatta International Convention Centre, Nairobi"
+                        value="{{ form.location.value|default:'' }}" required>
+                    {% if form.location.errors %}
+                    <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{
+                        form.location.errors|striptags }}</span>
+                    {% endif %}
+                </div>
+
+            </div>
+
+            <!-- ── SECTION 3: Ticketing ── -->
+            <div class="form-section" style="margin-top: 2rem;">
+                <div class="form-section__title">
+                    <i class="bi bi-ticket-perforated"></i>
+                    Ticketing &amp; Pricing
+                </div>
+            </div>
+
+            <div class="form-grid">
+
+                <!-- Price -->
+                <div class="es-form-group">
+                    <label class="es-label" for="{{ form.price.id_for_label }}">
+                        <i class="bi bi-currency-dollar"></i> Ticket Price <span class="required">*</span>
+                    </label>
+                    <input type="number" name="{{ form.price.html_name }}" id="{{ form.price.id_for_label }}"
+                        class="es-input {% if form.price.errors %}error{% endif %}" placeholder="0.00 for free events"
+                        value="{{ form.price.value|default:'' }}" step="0.01" min="0">
+                    <span class="es-hint">Enter 0 for free events.</span>
+                    {% if form.price.errors %}
+                    <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{ form.price.errors|striptags
+                        }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Ticket limit per user (if field exists) -->
+                {% if form.ticket_limit %}
+                <div class="es-form-group">
+                    <label class="es-label" for="{{ form.ticket_limit.id_for_label }}">
+                        <i class="bi bi-123"></i> Tickets per Person
+                    </label>
+                    <input type="number" name="{{ form.ticket_limit.html_name }}"
+                        id="{{ form.ticket_limit.id_for_label }}"
+                        class="es-input {% if form.ticket_limit.errors %}error{% endif %}" placeholder="e.g. 4"
+                        value="{{ form.ticket_limit.value|default:'' }}" min="1">
+                    {% if form.ticket_limit.errors %}
+                    <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{
+                        form.ticket_limit.errors|striptags }}</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- ── SECTION 4: Media ── -->
+            <div class="form-section" style="margin-top: 2rem;">
+                <div class="form-section__title">
+                    <i class="bi bi-image"></i>
+                    Event Image
+                </div>
+            </div>
+
+            <div class="form-grid cols-1" style="margin-bottom: 1rem;">
+                <div class="es-form-group">
+                    <label class="es-label">
+                        <i class="bi bi-upload"></i> Cover Image
+                    </label>
+                    <div class="es-file-wrap" id="fileDropZone">
+                        <input type="file" name="{{ form.image.html_name }}" id="{{ form.image.id_for_label }}"
+                            accept="image/*" id="imageInput">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                        <div class="es-file-label">
+                            <span>Click to upload</span> or drag &amp; drop<br>
+                            PNG, JPG, WEBP up to 5MB
+                        </div>
+                        <div class="es-file-name" id="fileName"></div>
+                    </div>
+
+                    <!-- image preview -->
+                    <div class="img-preview-wrap" id="imgPreviewWrap">
+                        <img src="" alt="Preview" id="imgPreview">
+                        <button type="button" class="img-preview-clear" id="clearImage" title="Remove image">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+
+                    {% if form.image.errors %}
+                    <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{ form.image.errors|striptags
+                        }}</span>
+                    {% endif %}
+                    <span class="es-hint">A high-quality landscape image (1200×630px recommended) will make your event
+                        stand out.</span>
+                </div>
+            </div>
+
+            <!-- ── FORM FOOTER ── -->
+            <div class="create-card__footer">
+                <div class="footer-note">
+                    <i class="bi bi-shield-check"></i>
+                    Your event will be reviewed before going live.
+                </div>
+                <div class="create-card__actions">
+                    <button type="button" class="btn-draft">
+                        <i class="bi bi-floppy me-1"></i> Save Draft
+                    </button>
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <span class="btn-label">
+                            <i class="bi bi-rocket-takeoff me-2"></i>Submit for Approval
+                        </span>
+                        <span class="btn-spin"></span>
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+<script>
+    /* ── IMAGE UPLOAD PREVIEW ── */
+    const imageInput = document.getElementById('imageInput') || document.querySelector('input[type="file"]');
+    const imgPreview = document.getElementById('imgPreview');
+    const imgPreviewWrap = document.getElementById('imgPreviewWrap');
+    const fileNameEl = document.getElementById('fileName');
+    const clearBtn = document.getElementById('clearImage');
+    const dropZone = document.getElementById('fileDropZone');
+
+    if (imageInput) {
+        imageInput.addEventListener('change', () => {
+            const file = imageInput.files[0];
+            if (!file) return;
+            fileNameEl.textContent = file.name;
+            fileNameEl.style.display = 'block';
+            const reader = new FileReader();
+            reader.onload = e => {
+                imgPreview.src = e.target.result;
+                imgPreviewWrap.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    clearBtn?.addEventListener('click', () => {
+        if (imageInput) imageInput.value = '';
+        imgPreview.src = '';
+        imgPreviewWrap.style.display = 'none';
+        fileNameEl.style.display = 'none';
+        fileNameEl.textContent = '';
+    });
+
+    /* drag over style */
+    dropZone?.addEventListener('dragover', e => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--teal)';
+        dropZone.style.background = 'rgba(45,212,192,.05)';
+    });
+    dropZone?.addEventListener('dragleave', () => {
+        dropZone.style.borderColor = '';
+        dropZone.style.background = '';
+    });
+    dropZone?.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.style.borderColor = '';
+        dropZone.style.background = '';
+        if (imageInput && e.dataTransfer.files[0]) {
+            const dt = new DataTransfer();
+            dt.items.add(e.dataTransfer.files[0]);
+            imageInput.files = dt.files;
+            imageInput.dispatchEvent(new Event('change'));
+        }
+    });
+
+    /* ── LIVE INPUT VALIDATION GLOW ── */
+    document.querySelectorAll('.es-input, .es-textarea, .es-select').forEach(el => {
+        el.addEventListener('blur', () => {
+            if (el.value.trim()) el.style.borderColor = 'var(--teal)';
+        });
+        el.addEventListener('input', () => {
+            if (el.classList.contains('error') && el.value.trim()) {
+                el.classList.remove('error');
+                el.style.borderColor = '';
+            }
+        });
+    });
+
+    /* ── SUBMIT LOADING STATE ── */
+    document.getElementById('createEventForm')?.addEventListener('submit', () => {
+        document.getElementById('submitBtn')?.classList.add('loading');
+    });
+</script>
+
+{% endblock %}

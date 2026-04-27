@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-2 bg-dark text-white p-3">
+      <h4 class="text-center">Admin Panel</h4>
+      <hr class="text-white">
+      <a class="d-block text-white mb-2" href="{% url 'admin_dashboard' %}">Dashboard</a>
+      <a class="d-block text-white mb-2" href="{% url 'admin_users' %}">Users</a>
+      <a class="d-block text-white mb-2" href="{% url 'admin_events' %}">Events</a>
+      <a class="d-block text-white mb-2" href="{% url 'admin_report' %}">Reports</a>
+      <a class="d-block text-white" href="{% url 'logout' %}">Logout</a>
+    </div>
+
+    <!-- Main content -->
+    <div class="col-md-10 p-4">
+      {% block admin_content %}
+      {% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}
