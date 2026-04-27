@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'attendance',
     'dashboard',
     'notifications',
-
     'widget_tweaks',
 ]
 
