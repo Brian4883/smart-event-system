@@ -1,5 +1,5 @@
 # users/views.py
-from django.shortcuts import render, redirect
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from .forms import CustomUserCreationForm, UpdateProfileForm
@@ -8,15 +8,15 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden, HttpResponse
-import csv
-from reportlab.platypus import SimpleDocTemplate, Paragraph
-from reportlab.lib.styles import getSampleStyleSheet
-from django.shortcuts import get_object_or_404
-
 from events.models import Event
 from tickets.models import Ticket 
 from django.utils.timezone import now
-from events.models import Event
+from users.models import CustomUser
+from openpyxl import Workbook
+from datetime import datetime
+from django.utils import timezone
+
+
 
 User = get_user_model()
 
@@ -47,6 +47,13 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
+
+            # 🔥 BLOCK unapproved organizers
+            if user.role == "organizer" and not user.is_verified:
+                messages.warning(request, "Your organizer account is pending admin approval.")
+                return redirect('login')
+
+            # ✅ Login allowed users
             login(request, user)
 
             # ROLE BASED REDIRECT
@@ -94,20 +101,19 @@ def admin_dashboard(request):
     if request.user.role != "admin":
         return HttpResponseForbidden()
 
+    users = User.objects.all()
     total_users = User.objects.count()
     total_organizers = User.objects.filter(role="organizer").count()
 
     unverified_organizers = User.objects.filter(role="organizer", is_verified=False)
 
-    pending_events = Event.objects.filter(is_approved=False)
-    approved_events = Event.objects.filter(is_approved=True)
-
+  
     context = {
+        "users": users,
         "total_users": total_users,
         "total_organizers": total_organizers,
         "unverified_organizers": unverified_organizers,
-        "pending_events": pending_events,
-        "approved_events": approved_events,
+     
     }
 
     return render(request, "dashboards/admin_dashboard.html", context)
@@ -163,105 +169,127 @@ def admin_events(request):
     return render(request, "admin/events.html", {"events": events})
 
 
+# VIEW USER 
+def view_user(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    return render(request, "view_user.html", {"u": user})
+
+
+# DEACTIVATE USER
+def deactivate_user(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    user.is_active = False
+    user.save()
+    return redirect("admin_dashboard")
+
+
+# ACTIVATE USER
+def activate_user(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    user.is_active = True
+    user.save()
+    return redirect("admin_dashboard")
+
+
+# DELETE USER
+def delete_user(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id)
+    user.delete()
+    return redirect("admin_dashboard")
+
+
 @login_required
-def approve_event(request, event_id):
+def download_users_report(request):
+
     if request.user.role != "admin":
-        return HttpResponseForbidden()
+        return HttpResponse("Unauthorized", status=403)
 
-    event = get_object_or_404(Event, id=event_id)
-    event.is_approved = True
-    event.save()
+    filename = f"users_report_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.xlsx"
 
-    messages.success(request, "Event approved successfully.")
-    return redirect('admin_dashboard')
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Users Report"
+
+    ws.append(["Username", "Email", "Role", "Status"])
+
+    users = CustomUser.objects.all()
+
+    for u in users:
+        if u.role == "organizer":
+            status = "Approved" if u.is_verified else "Pending"
+        else:
+            status = "Active"
+
+        ws.append([
+            u.username,
+            u.email,
+            u.role,
+            status
+        ])
+
+    wb.save(response)
+    return response
 
 
 @login_required
-def download_report(request):
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="events_report.csv"'
+def download_organizer_report(request):
 
-    writer = csv.writer(response)
-    writer.writerow(['Title', 'Organizer', 'Date'])
+    if request.user.role != "organizer":
+        return HttpResponse("Unauthorized", status=403)
 
-    events = Event.objects.all()
+    filename = f"my_events_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.xlsx"
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "My Events"
+
+    ws.append(["Title", "Location", "Date", "Price", "Status"])
+
+    events = Event.objects.filter(organizer=request.user)
 
     for event in events:
-        writer.writerow([event.title, event.organizer.username, event.start_date])
+        ws.append([
+            event.title,
+            getattr(event, "location", "N/A"),
+            str(event.start_date),
+            getattr(event, "price", 0),
+            "Approved" if getattr(event, "is_approved", True) else "Pending"
+        ])
 
+    wb.save(response)
     return response
-
-
-@login_required
-def generate_report(request):
-    if request.user.role != "admin":
-        return HttpResponseForbidden("Unauthorized")
-
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="report.pdf"'
-
-    doc = SimpleDocTemplate(response)
-    styles = getSampleStyleSheet()
-
-    content = []
-
-    content.append(Paragraph("Smart Event System Report", styles['Title']))
-
-    total_users = User.objects.count()
-    total_events = Event.objects.count()
-
-    content.append(Paragraph(f"Total Users: {total_users}", styles['Normal']))
-    content.append(Paragraph(f"Total Events: {total_events}", styles['Normal']))
-
-    doc.build(content)
-
-    return response
-
-
-@login_required
-def export_users_csv(request):
-    if request.user.role != "admin":
-        return HttpResponseForbidden("Unauthorized")
-
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="users.csv"'
-
-    writer = csv.writer(response)
-    writer.writerow(['Username', 'Email', 'Role'])
-
-    for user in User.objects.all():
-        writer.writerow([user.username, user.email, user.role])
-
-    return response
-
-
-@login_required
-def delete_user(request, user_id):
-    if request.user.role != "admin":
-        return HttpResponseForbidden("Unauthorized")
-
-    user = User.objects.get(id=user_id)
-    user.delete()
-
-    messages.success(request, "User deleted successfully")
-    return redirect("admin_users")
 
 
 @login_required
 def organizer_dashboard(request):
-    events = Event.objects.filter(organizer=request.user)
 
-    approved = events.filter(is_approved=True)
-    pending = events.filter(is_approved=False)
+    now = timezone.now()
+
+    my_events = Event.objects.filter(organizer=request.user)
+
+    total_events = my_events.count()
+    upcoming_events = my_events.filter(start_date__gte=now).count()
+    past_events = my_events.filter(start_date__lt=now).count()
 
     context = {
-        "approved_events": approved,
-        "pending_events": pending
+        "total_events": total_events,
+        "upcoming_events": upcoming_events,
+        "past_events": past_events,
+        "my_events": my_events,
     }
 
     return render(request, "dashboards/organizer_dashboard.html", context)
-
-
+    
 @login_required
 def attendee_dashboard(request):
     upcoming_events = Event.objects.filter(start_date__gte=now()).order_by('start_date')[:6]

@@ -7,114 +7,160 @@
 
     <!-- HEADER -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold">Organizer Dashboard</h2>
-        <a href="{% url 'create_event' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Create Event
-        </a>
-    </div>
 
-    <p class="text-muted">Welcome, {{ user.username }} 👋</p>
-
-    <!-- STATS CARDS -->
-    <div class="row mb-4">
-
-        <div class="col-md-4">
-            <div class="card shadow border-0 text-center">
-                <div class="card-body">
-                    <h5 class="text-muted">Approved Events</h5>
-                    <h2 class="text-success">{{ approved_events|length }}</h2>
-                </div>
-            </div>
+        <div>
+            <h2 class="fw-bold">Organizer Dashboard</h2>
+            <p class="text-muted mb-0">Welcome back, {{ user.username }} 👋 Manage your events efficiently</p>
         </div>
 
-        <div class="col-md-4">
-            <div class="card shadow border-0 text-center">
-                <div class="card-body">
-                    <h5 class="text-muted">Pending Events</h5>
-                    <h2 class="text-warning">{{ pending_events|length }}</h2>
-                </div>
-            </div>
-        </div>
+        <div class="d-flex gap-2">
 
-        <div class="col-md-4">
-            <div class="card shadow border-0 text-center">
-                <div class="card-body">
-                    <h5 class="text-muted">Total Events</h5>
-                    <h2 class="text-primary">
-                        {{ approved_events|length|add:pending_events|length }}
-                    </h2>
-                </div>
-            </div>
+            <a href="{% url 'create_event' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create Event
+            </a>
+
+            <a href="{% url 'organizer_report' %}" class="btn btn-success">
+                <i class="bi bi-download"></i> Export Report
+            </a>
+
         </div>
 
     </div>
 
-    <!-- APPROVED EVENTS -->
-    <div class="card shadow border-0 mb-4">
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0">Approved Events</h5>
+    <!-- KPI CARDS -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Events</h6>
+                    <h2 class="text-primary">{{ total_events }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Upcoming Events</h6>
+                    <h2 class="text-success">{{ upcoming_events }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Past Events</h6>
+                    <h2 class="text-warning">{{ past_events }}</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PERFORMANCE CHART -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0">Performance Analytics</h5>
         </div>
 
         <div class="card-body">
-            {% if approved_events %}
+            <canvas id="performanceChart"></canvas>
+        </div>
+    </div>
+
+    <!-- EVENTS LIST -->
+    <div class="card shadow-sm border-0">
+
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">My Events</h5>
+        </div>
+
+        <div class="card-body">
+
+            {% if my_events %}
+
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover align-middle">
+
+                    <thead class="table-light">
                         <tr>
                             <th>Title</th>
                             <th>Date</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
+
                     <tbody>
-                        {% for event in approved_events %}
+
+                        {% for event in my_events %}
                         <tr>
                             <td>{{ event.title }}</td>
                             <td>{{ event.date }}</td>
                             <td>
-                                <a href="{% url 'event_detail' event.id %}" class="btn btn-sm btn-info">
+
+                                <a href="{% url 'event_detail' event.id %}" class="btn btn-info btn-sm">
                                     View
                                 </a>
-                                <a href="{% url 'edit_event' event.id %}" class="btn btn-sm btn-warning">
+
+                                <a href="{% url 'edit_event' event.id %}" class="btn btn-warning btn-sm">
                                     Edit
                                 </a>
-                                <a href="{% url 'delete_event' event.id %}" class="btn btn-sm btn-danger">
+
+                                <a href="{% url 'delete_event' event.id %}" class="btn btn-danger btn-sm">
                                     Delete
                                 </a>
+
                             </td>
                         </tr>
                         {% endfor %}
+
                     </tbody>
+
                 </table>
             </div>
-            {% else %}
-            <p class="text-muted">No approved events yet.</p>
-            {% endif %}
-        </div>
-    </div>
 
-    <!-- PENDING EVENTS -->
-    <div class="card shadow border-0">
-        <div class="card-header bg-warning">
-            <h5 class="mb-0">Pending Approval</h5>
+            {% else %}
+            <p class="text-muted text-center">You have not created any events yet.</p>
+            {% endif %}
+
         </div>
 
-        <div class="card-body">
-            {% if pending_events %}
-            <ul class="list-group">
-                {% for event in pending_events %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    {{ event.title }}
-                    <span class="badge bg-warning text-dark">Waiting Approval</span>
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p class="text-muted">No pending events.</p>
-            {% endif %}
-        </div>
     </div>
 
 </div>
+
+<!-- CHART -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const ctx = document.getElementById('performanceChart');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Total Events', 'Upcoming Events', 'Past Events'],
+            datasets: [{
+                label: 'Event Performance',
+                data: [
+                    {{ total_events }},
+            {{ upcoming_events }},
+                    {{ past_events }}
+                ],
+        borderWidth: 1
+            }]
+        },
+        options: {
+        responsive: true,
+        plugins: {
+            legend: { display: true }
+        },
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+    });
+</script>
 
 {% endblock %}
