@@ -715,7 +715,10 @@
                 {% if event.price == 0 %}
                 <span class="ed-badge ed-badge--gold">Free Entry</span>
                 {% else %}
-                <span class="ed-badge ed-badge--glass">${{ event.price }} / ticket</span>
+                <span class="ed-badge ed-badge--glass">Ksh {{ event.price }} / ticket</span>
+                {% endif %}
+                {% if event.price_details %}
+                <span class="ed-badge ed-badge--glass">{{ event.price_details }}</span>
                 {% endif %}
                 {% if event.category %}
                 <span class="ed-badge ed-badge--glass">{{ event.category }}</span>
@@ -790,7 +793,7 @@
                         <div class="ed-detail-icon teal"><i class="bi bi-people"></i></div>
                         <div class="ed-detail-body">
                             <div class="ed-detail-label">Capacity</div>
-                            <div class="ed-detail-value">{{ event.total_tickets }} seats</div>
+                            <div class="ed-detail-value">{{ event.total_tickets }}</div>
                         </div>
                     </div>
                     {% endif %}
@@ -800,10 +803,30 @@
                         <div class="ed-detail-body">
                             <div class="ed-detail-label">Price</div>
                             <div class="ed-detail-value">
-                                {% if event.price == 0 %}Free{% else %}${{ event.price }} per ticket{% endif %}
+                                {% if event.price == 0 %}Free{% else %}Ksh {{ event.price }} per ticket{% endif %}
+                                {% if event.price_details %}
+                                <div class="text-muted small mt-1">{{ event.price_details }}</div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
+
+                    {% if event.payment_method and event.payment_details and event.price > 0 %}
+                    <div class="ed-detail-item">
+                        <div class="ed-detail-icon"><i class="bi bi-wallet2"></i></div>
+                        <div class="ed-detail-body">
+                            <div class="ed-detail-label">Pay First</div>
+                            <div class="ed-detail-value">
+                                {% if event.payment_method == 'till' %}
+                                Till Number: {{ event.payment_details }}
+                                {% else %}
+                                Phone Number: {{ event.payment_details }}
+                                {% endif %}
+                                <div class="text-muted small mt-1">Pay first, then complete your ticket booking.</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
 
                     {% if event.category %}
                     <div class="ed-detail-item">
@@ -852,13 +875,22 @@
                     <div class="ed-price-display">
                         <div class="ed-price-label">Ticket Price</div>
                         <div class="ed-price-value {% if event.price == 0 %}free{% endif %}">
-                            {% if event.price == 0 %}Free{% else %}${{ event.price }}{% endif %}
+                            {% if event.price == 0 %}Free{% else %}<span id="priceDisplay">Ksh {{ event.price }}</span>{% endif %}
                         </div>
                         <div class="ed-price-sub">per person · all fees included</div>
                     </div>
 
-                    <!-- Quantity -->
                     {% if event.price > 0 %}
+                    <div class="ed-currency-row">
+                        <label class="ed-currency-label" for="currencySelect">Currency</label>
+                        <select id="currencySelect" class="ed-currency-select">
+                            <option value="kes" selected>Ksh</option>
+                            <option value="usd">$ USD</option>
+                            <option value="eur">€ EUR</option>
+                        </select>
+                    </div>
+
+                    <!-- Quantity -->
                     <div class="ed-qty-row">
                         <span class="ed-qty-label">Quantity</span>
                         <div class="ed-qty-ctrl">
@@ -871,12 +903,12 @@
                     <!-- Total -->
                     <div class="ed-total-row">
                         <span class="ed-total-label">Total</span>
-                        <span class="ed-total-value" id="totalVal">${{ event.price }}</span>
+                        <span class="ed-total-value" id="totalVal">Ksh {{ event.price }}</span>
                     </div>
                     {% endif %}
 
                     <!-- CTA -->
-                    <a href="#" class="btn-buy-ticket">
+                    <a href="{% url 'purchase_ticket' event.id %}?qty=1" id="buyTicketBtn" class="btn-buy-ticket">
                         <i class="bi bi-ticket-perforated"></i>
                         {% if event.price == 0 %}Register for Free{% else %}Buy Ticket{% endif %}
                     </a>
@@ -939,15 +971,51 @@
     const qtyPlus = document.getElementById('qtyPlus');
     const qtyVal = document.getElementById('qtyVal');
     const totalVal = document.getElementById('totalVal');
+    const priceDisplay = document.getElementById('priceDisplay');
+    const currencySelect = document.getElementById('currencySelect');
+    const buyTicketBtn = document.getElementById('buyTicketBtn');
     let qty = 1;
+
+    const currencyRates = {
+        kes: 1,
+        usd: 0.0075,
+        eur: 0.0065,
+    };
+
+    const currencyFormats = {
+        kes: 'Ksh',
+        usd: '$',
+        eur: '€',
+    };
+
+    function formatAmount(amount) {
+        return amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
     function updateTotal() {
         if (qtyVal) qtyVal.textContent = qty;
-        if (totalVal) totalVal.textContent = '$' + (price * qty).toFixed(2);
+
+        const currency = currencySelect?.value || 'kes';
+        const convertedPrice = price * (currencyRates[currency] || 1);
+        const total = convertedPrice * qty;
+        const symbol = currencyFormats[currency] || 'Ksh';
+
+        if (priceDisplay) {
+            priceDisplay.textContent = `${symbol} ${formatAmount(convertedPrice)}`;
+        }
+        if (totalVal) {
+            totalVal.textContent = `${symbol} ${formatAmount(total)}`;
+        }
+        if (buyTicketBtn) {
+            buyTicketBtn.href = `{% url 'purchase_ticket' event.id %}?qty=${qty}`;
+        }
     }
 
     qtyMinus?.addEventListener('click', () => { if (qty > 1) { qty--; updateTotal(); } });
     qtyPlus?.addEventListener('click', () => { if (qty < 10) { qty++; updateTotal(); } });
+    currencySelect?.addEventListener('change', updateTotal);
+
+    updateTotal();
 
     /* ── COPY LINK ── */
     document.getElementById('copyLink')?.addEventListener('click', function () {

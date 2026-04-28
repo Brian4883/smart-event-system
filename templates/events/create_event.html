@@ -739,12 +739,44 @@
                     <label class="es-label" for="{{ form.total_tickets.id_for_label }}">
                         <i class="bi bi-people"></i> Capacity
                     </label>
-                    <input type="number" name="{{ form.total_tickets.html_name }}" id="{{ form.total_tickets.id_for_label }}"
+                    <input type="text" name="{{ form.total_tickets.html_name }}" id="{{ form.total_tickets.id_for_label }}"
                         class="es-input {% if form.total_tickets.errors %}error{% endif %}"
-                        placeholder="Max attendees e.g. 200" value="{{ form.total_tickets.value|default:'' }}" min="1">
+                        placeholder="Max attendees e.g. 200 or all are invited" value="{{ form.total_tickets.value|default:'' }}">
                     {% if form.total_tickets.errors %}
                     <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{
                         form.total_tickets.errors|striptags }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Payment method -->
+                <div class="es-form-group">
+                    <label class="es-label" for="{{ form.payment_method.id_for_label }}">
+                        <i class="bi bi-cash-stack"></i> Payment Method
+                    </label>
+                    <select name="{{ form.payment_method.html_name }}" id="{{ form.payment_method.id_for_label }}"
+                        class="es-select {% if form.payment_method.errors %}error{% endif %}">
+                        <option value="">Choose a payment method</option>
+                        {% for value, label in form.payment_method.field.choices %}
+                        <option value="{{ value }}" {% if form.payment_method.value == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.payment_method.errors %}
+                    <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{
+                        form.payment_method.errors|striptags }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Payment details -->
+                <div class="es-form-group">
+                    <label class="es-label" for="{{ form.payment_details.id_for_label }}">
+                        <i class="bi bi-clipboard-check"></i> Payment Details
+                    </label>
+                    <input type="text" name="{{ form.payment_details.html_name }}" id="{{ form.payment_details.id_for_label }}"
+                        class="es-input {% if form.payment_details.errors %}error{% endif %}"
+                        placeholder="Till number or phone number" value="{{ form.payment_details.value|default:'' }}">
+                    {% if form.payment_details.errors %}
+                    <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{
+                        form.payment_details.errors|striptags }}</span>
                     {% endif %}
                 </div>
 
@@ -820,7 +852,7 @@
                 <!-- Price -->
                 <div class="es-form-group">
                     <label class="es-label" for="{{ form.price.id_for_label }}">
-                        <i class="bi bi-currency-dollar"></i> Ticket Price <span class="required">*</span>
+                        <i class="bi bi-currency-dollar"></i> Ticket Price (Ksh) <span class="required">*</span>
                     </label>
                     <input type="number" name="{{ form.price.html_name }}" id="{{ form.price.id_for_label }}"
                         class="es-input {% if form.price.errors %}error{% endif %}" placeholder="0.00 for free events"
@@ -829,6 +861,21 @@
                     {% if form.price.errors %}
                     <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{ form.price.errors|striptags
                         }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Price note -->
+                <div class="es-form-group">
+                    <label class="es-label" for="{{ form.price_details.id_for_label }}">
+                        <i class="bi bi-card-text"></i> Price Note
+                    </label>
+                    <input type="text" name="{{ form.price_details.html_name }}" id="{{ form.price_details.id_for_label }}"
+                        class="es-input {% if form.price_details.errors %}error{% endif %}"
+                        placeholder="e.g. two tusker or one of them"
+                        value="{{ form.price_details.value|default:'' }}">
+                    <span class="es-hint">Optional alternate description for your ticket price.</span>
+                    {% if form.price_details.errors %}
+                    <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{ form.price_details.errors|striptags }}</span>
                     {% endif %}
                 </div>
 

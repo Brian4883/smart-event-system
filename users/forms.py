@@ -8,7 +8,6 @@ class CustomUserCreationForm(UserCreationForm):
         model = CustomUser
         fields = ['username', 'email', 'role', 'password1', 'password2']  # password1/2 handled by UserCreationForm
 
-    # Optional: customize widgets
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['username'].widget.attrs.update({'class': 'form-control'})
@@ -16,6 +15,18 @@ class CustomUserCreationForm(UserCreationForm):
         self.fields['role'].widget.attrs.update({'class': 'form-select'})
         self.fields['password1'].widget.attrs.update({'class': 'form-control'})
         self.fields['password2'].widget.attrs.update({'class': 'form-control'})
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if CustomUser.objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError('This username is already taken. Please choose another.')
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if CustomUser.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError('An account with this email already exists.')
+        return email
 
 
 # Optional: password reset form if you want to customize it
