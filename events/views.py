@@ -21,7 +21,7 @@ def create_event(request):
         return redirect("organizer_dashboard")
 
     if request.method == 'POST':
-        form = EventForm(request.POST)
+        form = EventForm(request.POST, request.FILES)
 
         if form.is_valid():
             event = form.save(commit=False)

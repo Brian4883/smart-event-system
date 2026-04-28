@@ -785,12 +785,12 @@
                         </div>
                     </div>
 
-                    {% if event.capacity %}
+                    {% if event.total_tickets %}
                     <div class="ed-detail-item">
                         <div class="ed-detail-icon teal"><i class="bi bi-people"></i></div>
                         <div class="ed-detail-body">
                             <div class="ed-detail-label">Capacity</div>
-                            <div class="ed-detail-value">{{ event.capacity }} seats</div>
+                            <div class="ed-detail-value">{{ event.total_tickets }} seats</div>
                         </div>
                     </div>
                     {% endif %}

@@ -4,7 +4,7 @@ from .models import Event
 class EventForm(forms.ModelForm):
     class Meta:
         model = Event
-        fields = '__all__'
+        exclude = ['organizer', 'is_approved']
 
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),

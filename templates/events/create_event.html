@@ -732,32 +732,19 @@
                     {% endif %}
                 </div>
 
-                <!-- Category -->
-                <div class="es-form-group">
-                    <label class="es-label" for="{{ form.category.id_for_label }}">
-                        <i class="bi bi-tag"></i> Category
-                    </label>
-                    <select name="{{ form.category.html_name }}" id="{{ form.category.id_for_label }}"
-                        class="es-select {% if form.category.errors %}error{% endif %}">
-                        {{ form.category }}
-                    </select>
-                    {% if form.category.errors %}
-                    <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{
-                        form.category.errors|striptags }}</span>
-                    {% endif %}
-                </div>
+
 
                 <!-- Capacity -->
                 <div class="es-form-group">
-                    <label class="es-label" for="{{ form.capacity.id_for_label }}">
+                    <label class="es-label" for="{{ form.total_tickets.id_for_label }}">
                         <i class="bi bi-people"></i> Capacity
                     </label>
-                    <input type="number" name="{{ form.capacity.html_name }}" id="{{ form.capacity.id_for_label }}"
-                        class="es-input {% if form.capacity.errors %}error{% endif %}"
-                        placeholder="Max attendees e.g. 200" value="{{ form.capacity.value|default:'' }}" min="1">
-                    {% if form.capacity.errors %}
+                    <input type="number" name="{{ form.total_tickets.html_name }}" id="{{ form.total_tickets.id_for_label }}"
+                        class="es-input {% if form.total_tickets.errors %}error{% endif %}"
+                        placeholder="Max attendees e.g. 200" value="{{ form.total_tickets.value|default:'' }}" min="1">
+                    {% if form.total_tickets.errors %}
                     <span class="es-field-error"><i class="bi bi-exclamation-circle"></i>{{
-                        form.capacity.errors|striptags }}</span>
+                        form.total_tickets.errors|striptags }}</span>
                     {% endif %}
                 </div>
 
