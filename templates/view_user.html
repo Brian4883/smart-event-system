@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow p-4">
+        <h2>User Details</h2>
+        <hr>
+
+        <p><strong>Full Name:</strong> {{ u.full_name }}</p>
+        <p><strong>Username:</strong> {{ u.username }}</p>
+        <p><strong>Email:</strong> {{ u.email }}</p>
+        <p><strong>Status:</strong>
+            {% if u.is_active %}
+            <span class="text-success">Active</span>
+            {% else %}
+            <span class="text-danger">Inactive</span>
+            {% endif %}
+        </p>
+
+        <div class="mt-4">
+            {% if u.is_active %}
+            <a href="{% url 'deactivate_user' u.id %}" class="btn btn-warning">
+                Deactivate
+            </a>
+            {% else %}
+            <a href="{% url 'activate_user' u.id %}" class="btn btn-success">
+                Activate
+            </a>
+            {% endif %}
+
+            <a href="{% url 'delete_user' u.id %}" class="btn btn-danger"
+                onclick="return confirm('Are you sure you want to delete this user?');">
+                Delete
+            </a>
+
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">
+                Back
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

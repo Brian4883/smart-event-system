@@ -1,9 +1,10 @@
 from django.urls import path
-from . import views
+from .views import scan_ticket, my_tickets, purchase_ticket
 
 urlpatterns = [
 
-    path('purchase/<int:event_id>/', views.purchase_ticket, name='purchase_ticket'),
-    path('my-tickets/', views.my_tickets, name='my_tickets'),
+    path('purchase/<int:event_id>/', purchase_ticket, name='purchase_ticket'),
+    path('my-tickets/', my_tickets, name='my_tickets'),
+    path('scan/', scan_ticket, name='scan_ticket'),
 
 ]
