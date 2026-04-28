@@ -710,10 +710,13 @@
                 {% endif %}
                 <div class="ev-card__img-overlay"></div>
                 <div class="ev-card__price-badge">
-                    {% if event.price == 0 %}Free{% else %}${{ event.price }}{% endif %}
+                    {% if event.price == 0 %}Free{% else %}Ksh {{ event.price }}{% endif %}
                 </div>
                 <div class="ev-card__cat">Event</div>
             </div>
+            {% if event.price_details %}
+            <div class="ev-card__note small text-muted px-3 mt-2">{{ event.price_details }}</div>
+            {% endif %}
 
             <!-- body -->
             <div class="ev-card__body">
@@ -734,7 +737,7 @@
                     <div class="ev-meta-item">
                         <i class="bi bi-tag"></i>
                         <strong>
-                            {% if event.price == 0 %}Free Entry{% else %}${{ event.price }} / ticket{% endif %}
+                            {% if event.price == 0 %}Free Entry{% else %}Ksh {{ event.price }} / ticket{% endif %}
                         </strong>
                     </div>
                 </div>
@@ -742,7 +745,7 @@
 
             <!-- footer -->
             <div class="ev-card__footer">
-                <a href="#" class="btn-buy">
+                <a href="{% url 'event_detail' event.id %}" class="btn-buy">
                     <i class="bi bi-ticket-perforated"></i>
                     {% if event.price == 0 %}Register Free{% else %}Buy Ticket{% endif %}
                 </a>
