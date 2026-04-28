@@ -2,47 +2,247 @@
 {% load static %}
 {% load widget_tweaks %}
 
-
 {% block content %}
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
 
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="bi bi-person-circle"></i> Update Profile</h4>
-                </div>
+<style>
+    /* ══════════════════════════════════════════
+   PAGE SHELL
+══════════════════════════════════════════ */
+    .update-page {
+        padding: 2rem 0 4rem;
+    }
 
-                <div class="card-body">
-                    <form method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
+    /* HEADER */
+    .update-hero {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
 
-                        {% for field in form %}
-                        <div class="mb-3">
-                            <label class="form-label">{{ field.label }}</label>
-                            {{ field|add_class:"form-control" }}
-                            {% if field.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ field.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
+    .update-title {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.4rem;
+        font-weight: 700;
+        color: var(--text);
+    }
 
-                        <button type="submit" class="btn btn-success w-100">
-                            <i class="bi bi-check-circle"></i> Update Profile
-                        </button>
-                    </form>
-                </div>
+    .update-title span {
+        color: var(--gold);
+    }
 
-                <div class="card-footer text-center">
-                    <a href="{% url 'profile' %}" class="btn btn-secondary btn-sm">
-                        <i class="bi bi-arrow-left-circle"></i> Back to Profile
-                    </a>
-                </div>
+    .update-sub {
+        color: var(--muted);
+        font-size: .9rem;
+    }
+
+    /* CARD */
+    .update-card {
+        max-width: 520px;
+        margin: 0 auto;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, .4);
+        animation: fadeUp .5s ease;
+    }
+
+    /* INPUTS */
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        font-size: .8rem;
+        color: var(--muted);
+        margin-bottom: .3rem;
+    }
+
+    .form-control {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: .65rem .8rem;
+        color: var(--text);
+        font-size: .85rem;
+        transition: .2s;
+    }
+
+    .form-control:focus {
+        border-color: var(--teal);
+        box-shadow: 0 0 0 3px rgba(45, 212, 192, .1);
+    }
+
+    /* IMAGE PREVIEW */
+    .avatar-upload {
+        text-align: center;
+        margin-bottom: 1.2rem;
+    }
+
+    .avatar-wrapper {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    .avatar-wrapper input {
+        display: none;
+    }
+
+    .avatar-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--gold);
+    }
+
+    .avatar-overlay {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, .5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: .75rem;
+        opacity: 0;
+        transition: .25s;
+    }
+
+    .avatar-wrapper:hover .avatar-overlay {
+        opacity: 1;
+    }
+
+    /* BUTTON */
+    .btn-save {
+        width: 100%;
+        margin-top: 1rem;
+        background: var(--gold);
+        border: none;
+        padding: .7rem;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: .85rem;
+        transition: .2s;
+    }
+
+    .btn-save:hover {
+        background: var(--gold-lt);
+        transform: translateY(-2px);
+    }
+
+    /* BACK BUTTON */
+    .back-link {
+        margin-top: 1rem;
+        display: block;
+        text-align: center;
+        font-size: .85rem;
+        color: var(--muted);
+        text-decoration: none;
+    }
+
+    .back-link:hover {
+        color: var(--teal);
+    }
+
+    /* ERROR */
+    .text-danger {
+        font-size: .75rem;
+    }
+
+    /* ANIMATION */
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="update-page">
+
+    <!-- HEADER -->
+    <div class="update-hero">
+        <h1 class="update-title">Update <span>Profile</span></h1>
+        <p class="update-sub">Edit your personal information and profile photo</p>
+    </div>
+
+    <!-- FORM -->
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="update-card">
+
+            <!-- IMAGE PREVIEW -->
+            <div class="avatar-upload">
+                <label class="avatar-wrapper">
+
+                    {% if user.profile_picture and user.profile_picture.url %}
+                    <img id="previewImage" src="{{ user.profile_picture.url }}" class="avatar-img">
+                    {% else %}
+                    <img id="previewImage" src="/media/default.png" class="avatar-img">
+                    {% endif %}
+
+                    <div class="avatar-overlay">Change</div>
+
+                    <input type="file" name="profile_picture" id="imageInput" accept="image/*">
+                </label>
             </div>
 
+            <!-- FORM FIELDS -->
+            {% for field in form %}
+            {% if field.name != "profile_picture" %}
+            <div class="form-group">
+                <label class="form-label">{{ field.label }}</label>
+                {{ field|add_class:"form-control" }}
+
+                {% if field.errors %}
+                <div class="text-danger mt-1">{{ field.errors }}</div>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% endfor %}
+
+            <!-- SUBMIT -->
+            <button type="submit" class="btn-save">
+                <i class="bi bi-check-circle"></i> Save Changes
+            </button>
+
+            <!-- BACK -->
+            <a href="{% url 'profile' %}" class="back-link">
+                ← Back to Profile
+            </a>
+
         </div>
-    </div>
+
+    </form>
+
 </div>
+
+<script>
+    /* IMAGE PREVIEW */
+    const input = document.getElementById('imageInput');
+    const preview = document.getElementById('previewImage');
+
+    input.addEventListener('change', function () {
+        const file = this.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+            }
+
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+
 {% endblock %}

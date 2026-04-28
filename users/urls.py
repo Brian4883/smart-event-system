@@ -1,6 +1,6 @@
 # users/urls.py
 from django.urls import path
-from .views import register_view, login_view, logout_view, password_reset_view, admin_dashboard, organizer_dashboard, attendee_dashboard, profile, update_profile, admin_dashboard, admin_events, admin_users, change_user_role, export_users_csv, generate_report, delete_user, approve_event, verify_organizer, download_report
+from .views import register_view, login_view, logout_view, password_reset_view, admin_dashboard, organizer_dashboard, attendee_dashboard, profile, update_profile, admin_dashboard, admin_events, admin_users, change_user_role,  delete_user, verify_organizer, download_users_report, download_organizer_report, view_user, deactivate_user, delete_user, activate_user
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
@@ -32,16 +32,17 @@ urlpatterns = [
         name='password_reset_complete'
     ),
 
-
+    path('report/events/', download_organizer_report, name='organizer_report'),
 
     path('admin/users/', admin_users, name='admin_users'),
-path('admin/events/', admin_events, name='admin_events'),
-path('admin/report/', generate_report, name='admin_report'),
-path('admin/export-users/', export_users_csv, name='export_users'),
-path('admin/change-role/<int:user_id>/', change_user_role, name='change_user_role'),
-path('admin/delete-user/<int:user_id>/', delete_user, name='delete_user'),
-path('approve-event/<int:event_id>/', approve_event, name='approve_event'),
-path('verify-organizer/<int:user_id>/', verify_organizer, name='verify_organizer'),
-path('admin/report/', download_report, name='download_report'),
+    path('admin/events/', admin_events, name='admin_events'),   
+    path('admin/change-role/<int:user_id>/', change_user_role, name='change_user_role'),
+    path('admin/delete-user/<int:user_id>/', delete_user, name='delete_user'),
+    path('verify-organizer/<int:user_id>/', verify_organizer, name='verify_organizer'),
+    path('admin/report/', download_users_report, name='download_report'),
+    path('user/<int:user_id>/view/', view_user, name='view_user'),
+    path('user/<int:user_id>/deactivate/', deactivate_user, name='deactivate_user'),
+    path('user/<int:user_id>/activate/', activate_user, name='activate_user'),
+    path('user/<int:user_id>/delete/', delete_user, name='delete_user'),
 ]
 
