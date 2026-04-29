@@ -19,15 +19,8 @@
 
                 <!-- EVENT IMAGE -->
                 {% if ticket.event.image %}
-<<<<<<< HEAD
-                <div style="overflow: hidden;">
-                    <img src="{{ ticket.event.image.url }}" class="card-img-top"
-                        style="height:200px; object-fit:cover; transition: transform 0.3s ease;">
-                </div>
-=======
                 {% if ticket.event.image %}<img src="{{ ticket.event.image.url }}" class="card-img-top"
                     style="height:200px; object-fit:cover;">{% endif %}
->>>>>>> ac4b3cf05af8abbc1e35eed069cc5c9695b2924c
                 {% else %}
                 <div class="text-center p-5" style="background: #141720;">
                     <i class="bi bi-image" style="font-size: 3rem; color: #94a3b8;"></i>
