@@ -2,37 +2,74 @@
 
 {% block content %}
 
-<div class="container mt-4">
-    <h3>Notification Settings</h3>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="glass-card">
+                <h3 class="mb-4 fw-bold" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    <i class="bi bi-gear me-2"></i>Notification Settings
+                </h3>
 
-    <div class="card p-4 mt-3">
+                <div class="p-4" style="background: #141720; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
+                    
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" checked style="accent-color: #2dd4c0;">
+                        <label class="form-check-label ms-2" style="color: #f8fafc;">
+                            <i class="bi bi-envelope me-2"></i>Email Notifications
+                        </label>
+                    </div>
 
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" checked>
-            <label class="form-check-label">
-                Email Notifications
-            </label>
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" checked style="accent-color: #2dd4c0;">
+                        <label class="form-check-label ms-2" style="color: #f8fafc;">
+                            <i class="bi bi-calendar-event me-2"></i>Event Updates
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" style="accent-color: #2dd4c0;">
+                        <label class="form-check-label ms-2" style="color: #f8fafc;">
+                            <i class="bi bi-phone me-2"></i>SMS Notifications
+                        </label>
+                    </div>
+
+                    <button class="btn btn-premium w-100 mt-2">
+                        <i class="bi bi-check-lg me-2"></i>Save Settings
+                    </button>
+
+                </div>
+            </div>
         </div>
-
-        <div class="form-check mt-2">
-            <input class="form-check-input" type="checkbox" checked>
-            <label class="form-check-label">
-                Event Updates
-            </label>
-        </div>
-
-        <div class="form-check mt-2">
-            <input class="form-check-input" type="checkbox">
-            <label class="form-check-label">
-                SMS Notifications
-            </label>
-        </div>
-
-        <button class="btn btn-primary mt-3">
-            Save Settings
-        </button>
-
     </div>
 </div>
+
+<style>
+    .glass-card {
+        background: rgba(30, 41, 59, 0.6);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    .btn-premium {
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-premium:hover {
+        background: linear-gradient(135deg, #4f46e5 0%, #9333ea 50%, #db2777 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        color: white;
+    }
+</style>
 
 {% endblock %}

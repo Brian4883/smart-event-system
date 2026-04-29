@@ -91,6 +91,9 @@ def purchase_ticket(request, event_id):
         qty = 1
     qty = max(1, min(qty, 10))
 
+    if event.price > 0:
+        return redirect(f"/tickets/checkout/{event.id}/?qty={qty}")
+
     created_tickets = []
     for _ in range(qty):
         ticket_code = str(uuid.uuid4())
@@ -101,16 +104,58 @@ def purchase_ticket(request, event_id):
         )
         created_tickets.append(ticket)
 
-    if event.price == 0:
-        emailed = email_ticket_attachments(request, request.user, created_tickets)
-        if emailed:
-            messages.success(request, 'Free ticket(s) generated and emailed to you. You can also download them from My Tickets.')
-        else:
-            messages.warning(request, 'Your free ticket(s) were generated, but email delivery failed. Please download them from My Tickets.')
+    emailed = email_ticket_attachments(request, request.user, created_tickets)
+    if emailed:
+        messages.success(request, 'Free ticket(s) generated and emailed to you. You can also download them from My Tickets.')
     else:
-        messages.success(request, 'Ticket purchase complete. You can download your ticket(s) from My Tickets.')
+        messages.warning(request, 'Your free ticket(s) were generated, but email delivery failed. Please download them from My Tickets.')
 
     return redirect('my_tickets')
+
+
+@login_required
+def checkout(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    if event.price == 0:
+        return redirect('purchase_ticket', event_id=event.id)
+
+    qty = request.GET.get('qty', '1')
+    try:
+        qty = int(qty)
+    except ValueError:
+        qty = 1
+    qty = max(1, min(qty, 10))
+
+    total_price = event.price * qty
+
+    if request.method == 'POST':
+        payment_type = request.POST.get('payment_type')
+        
+        if payment_type == 'stk':
+            phone_number = request.POST.get('phone_number')
+            messages.info(request, f"STK push prompt sent to {phone_number}. Simulating successful payment...")
+        elif payment_type == 'manual':
+            messages.info(request, "Manual payment confirmed. Verifying with organizer...")
+            
+        created_tickets = []
+        for _ in range(qty):
+            ticket_code = str(uuid.uuid4())
+            ticket = Ticket.objects.create(
+                user=request.user,
+                event=event,
+                ticket_code=ticket_code
+            )
+            created_tickets.append(ticket)
+        
+        messages.success(request, 'Ticket(s) generated successfully! You can download them below.')
+        return redirect('my_tickets')
+
+    context = {
+        'event': event,
+        'qty': qty,
+        'total_price': total_price,
+    }
+    return render(request, 'tickets/checkout.html', context)
 
 
 @login_required

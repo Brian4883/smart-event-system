@@ -1,6 +1,7 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import Http404
 from .models import Event
 from .forms import EventForm
 
@@ -10,7 +11,7 @@ def event_list(request):
     return render(request, 'events/event_list.html', {'events': events})
 
 def event_detail(request, event_id):
-    event = Event.objects.get(id=event_id, is_approved=True)
+    event = get_object_or_404(Event, id=event_id)
     return render(request, 'events/event_detail.html', {'event': event})
 
 
@@ -27,11 +28,11 @@ def create_event(request):
             event = form.save(commit=False)
             event.organizer = request.user
 
-            event.is_approved = False
+            event.is_approved = True
 
             event.save()
 
-            messages.info(request, "Event submitted for approval.")
+            messages.success(request, "Event created successfully.")
             return redirect('organizer_dashboard')
 
     else:

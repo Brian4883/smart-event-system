@@ -3,69 +3,85 @@
 
 {% block content %}
 
-<div class="container-fluid">
+<div class="container-fluid py-4">
 
     <!-- HEADER -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold">Welcome, {{ user.username }} 👋</h2>
-        <span class="text-muted">Attendee Dashboard</span>
+        <div>
+            <h2 class="fw-bold mb-1" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Welcome, {{ user.username }} 👋</h2>
+            <span class="text-muted" style="color: #94a3b8 !important;">Attendee Dashboard</span>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'event_list' %}" class="btn btn-premium">
+                <i class="bi bi-calendar-event me-2"></i>Browse Events
+            </a>
+        </div>
     </div>
 
     <!-- STATS -->
-    <div class="row mb-4">
+    <div class="row mb-4 g-3">
 
         <div class="col-md-4">
-            <div class="card shadow border-0 text-center">
-                <div class="card-body">
-                    <h6 class="text-muted">Events Attended</h6>
-                    <h3 class="text-primary">{{ attended_count|default:0 }}</h3>
+            <div class="glass-card text-center p-4">
+                <div class="mb-2">
+                    <i class="bi bi-calendar-check" style="font-size: 2rem; color: #6366f1;"></i>
                 </div>
+                <h6 class="text-muted mb-1" style="color: #94a3b8 !important;">Events Attended</h6>
+                <h3 class="mb-0" style="font-size: 2.5rem; color: #f8fafc; font-weight: 800;">{{ attended_count|default:0 }}</h3>
             </div>
         </div>
 
         <div class="col-md-4">
-            <div class="card shadow border-0 text-center">
-                <div class="card-body">
-                    <h6 class="text-muted">Tickets Booked</h6>
-                    <h3 class="text-success">{{ tickets_count|default:0 }}</h3>
+            <div class="glass-card text-center p-4">
+                <div class="mb-2">
+                    <i class="bi bi-ticket-perforated" style="font-size: 2rem; color: #ec4899;"></i>
                 </div>
+                <h6 class="text-muted mb-1" style="color: #94a3b8 !important;">Tickets Booked</h6>
+                <h3 class="mb-0" style="font-size: 2.5rem; color: #22c55e; font-weight: 800;">{{ tickets_count|default:0 }}</h3>
             </div>
         </div>
 
         <div class="col-md-4">
-            <div class="card shadow border-0 text-center">
-                <div class="card-body">
-                    <h6 class="text-muted">Upcoming Events</h6>
-                    <h3 class="text-warning">{{ upcoming_events|length }}</h3>
+            <div class="glass-card text-center p-4">
+                <div class="mb-2">
+                    <i class="bi bi-clock-history" style="font-size: 2rem; color: #f59e0b;"></i>
                 </div>
+                <h6 class="text-muted mb-1" style="color: #94a3b8 !important;">Upcoming Events</h6>
+                <h3 class="mb-0" style="font-size: 2.5rem; color: #f59e0b; font-weight: 800;">{{ upcoming_events|length }}</h3>
             </div>
         </div>
 
     </div>
 
     <!-- UPCOMING EVENTS -->
-    <div class="card shadow border-0 mb-4">
-        <div class="card-header bg-primary text-white">
-            Upcoming Events
+    <div class="glass-card mb-4" style="padding: 0 !important; overflow: hidden;">
+        <div class="card-header border-0" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); padding: 1rem 1.5rem;">
+            <h5 class="mb-0 fw-bold" style="color: white;"><i class="bi bi-calendar-event me-2"></i>Upcoming Events</h5>
         </div>
 
-        <div class="card-body">
+        <div class="card-body p-4">
             {% if upcoming_events %}
-            <div class="row">
+            <div class="row g-4">
                 {% for event in upcoming_events %}
                 <div class="col-md-4 mb-3">
-                    <div class="card h-100 shadow-sm">
+                    <div class="glass-card h-100 p-0" style="overflow: hidden;">
 
                         {% if event.image %}
-                        {% if event.image %}<img src="{{ event.image.url }}" class="card-img-top" style="height:180px; object-fit:cover;">{% endif %}
+                        <div style="overflow: hidden;">
+                            <img src="{{ event.image.url }}" class="card-img-top" style="height:180px; object-fit:cover; transition: transform 0.3s ease;">
+                        </div>
                         {% endif %}
 
                         <div class="card-body">
-                            <h5>{{ event.title }}</h5>
-                            <p class="text-muted small">{{ event.start_date }}</p>
-
-                            <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-primary btn-sm">
-                                View
+                            <h5 class="fw-bold mb-2" style="color: #f8fafc;">{{ event.title }}</h5>
+                            <p class="small mb-3" style="color: #94a3b8;">
+                                <i class="bi bi-calendar me-1"></i>{{ event.start_date }}
+                            </p>
+                            <p class="mb-3" style="color: #cbd5e1; font-size: 0.9rem;">
+                                {{ event.description|truncatewords:20 }}
+                            </p>
+                            <a href="{% url 'event_detail' event.id %}" class="btn btn-premium w-100">
+                                View Details
                             </a>
                         </div>
 
@@ -74,43 +90,105 @@
                 {% endfor %}
             </div>
             {% else %}
-            <p class="text-muted">No upcoming events.</p>
+            <div class="text-center py-5">
+                <i class="bi bi-calendar-x" style="font-size: 3rem; color: #94a3b8;"></i>
+                <p class="mt-3" style="color: #94a3b8;">No upcoming events. Browse events to find something exciting!</p>
+                <a href="{% url 'event_list' %}" class="btn btn-premium mt-2">Browse Events</a>
+            </div>
             {% endif %}
         </div>
     </div>
 
     <!-- MY TICKETS -->
-    <div class="card shadow border-0">
-        <div class="card-header bg-success text-white">
-            My Tickets
+    <div class="glass-card" style="padding: 0 !important; overflow: hidden;">
+        <div class="card-header border-0" style="background: linear-gradient(135deg, #22c55e 0%, #2dd4c0 100%); padding: 1rem 1.5rem;">
+            <h5 class="mb-0 fw-bold" style="color: white;"><i class="bi bi-ticket-perforated me-2"></i>My Tickets</h5>
         </div>
 
-        <div class="card-body">
+        <div class="card-body p-4">
             {% if tickets %}
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Event</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for ticket in tickets %}
-                    <tr>
-                        <td>{{ ticket.event.title }}</td>
-                        <td>{{ ticket.event.start_date }}</td>
-                        <td><span class="badge bg-success">Confirmed</span></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table" style="color: #f8fafc;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <th style="color: #94a3b8; padding: 1rem;"><i class="bi bi-calendar-event me-2"></i>Event</th>
+                            <th style="color: #94a3b8; padding: 1rem;"><i class="bi bi-calendar me-2"></i>Date</th>
+                            <th style="color: #94a3b8; padding: 1rem;"><i class="bi bi-info-circle me-2"></i>Status</th>
+                            <th style="color: #94a3b8; padding: 1rem;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in tickets %}
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <td style="padding: 1rem; color: #f8fafc;">
+                                <strong>{{ ticket.event.title }}</strong>
+                            </td>
+                            <td style="padding: 1rem; color: #cbd5e1;">{{ ticket.event.start_date }}</td>
+                            <td style="padding: 1rem;">
+                                <span class="badge" style="background: linear-gradient(135deg, #22c55e 0%, #2dd4c0 100%); padding: 0.5rem 1rem; border-radius: 20px; color: white;">
+                                    <i class="bi bi-check-circle me-1"></i>Confirmed
+                                </span>
+                            </td>
+                            <td style="padding: 1rem;">
+                                <a href="{% url 'event_detail' ticket.event.id %}" class="btn btn-sm" style="background: rgba(99, 102, 241, 0.2); border: 1px solid rgba(99, 102, 241, 0.3); color: #f8fafc; border-radius: 8px;">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
-            <p class="text-muted">No tickets booked yet.</p>
+            <div class="text-center py-5">
+                <i class="bi bi-ticket" style="font-size: 3rem; color: #94a3b8;"></i>
+                <p class="mt-3" style="color: #94a3b8;">No tickets booked yet.</p>
+                <a href="{% url 'event_list' %}" class="btn btn-premium mt-2">Find Events</a>
+            </div>
             {% endif %}
         </div>
     </div>
 
 </div>
 
+<style>
+    .glass-card {
+        background: rgba(30, 41, 59, 0.6);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .glass-card img:hover {
+        transform: scale(1.05);
+    }
+
+    .btn-premium {
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-premium:hover {
+        background: linear-gradient(135deg, #4f46e5 0%, #9333ea 50%, #db2777 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        color: white;
+    }
+</style>
 {% endblock %}

@@ -292,7 +292,7 @@ def organizer_dashboard(request):
     
 @login_required
 def attendee_dashboard(request):
-    upcoming_events = Event.objects.filter(start_date__gte=now()).order_by('start_date')[:6]
+    upcoming_events = Event.objects.filter(is_approved=True, start_date__gte=now()).order_by('start_date')[:6]
 
     tickets = Ticket.objects.filter(user=request.user) if 'Ticket' in globals() else []
 
