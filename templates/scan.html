@@ -1,0 +1,50 @@
+<!-- templates/scan.html -->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Ticket Scanner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body style="text-align:center; font-family:sans-serif;">
+
+    <h2>🎟 Ticket Scanner</h2>
+
+    <div id="reader" style="width:100%"></div>
+
+    <p id="result"></p>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <script>
+        function onScanSuccess(decodedText) {
+
+            fetch("/scan-ticket/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    code: decodedText
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("result").innerText = data.message;
+                });
+
+        }
+
+        const scanner = new Html5QrcodeScanner("reader", {
+            fps: 10,
+            qrbox: 250
+        });
+
+        scanner.render(onScanSuccess);
+    </script>
+
+</body>
+
+</html>

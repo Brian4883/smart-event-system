@@ -169,3 +169,23 @@ def download_ticket(request, ticket_id):
 def my_tickets(request):
     tickets = Ticket.objects.filter(user=request.user)
     return render(request, 'tickets/my_tickets.html', {'tickets': tickets})
+
+
+
+
+def scan_ticket(request):
+    
+    # ONLY handle JSON when POST request
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            qr_code = data.get("qr_code")
+
+            # TODO: validate ticket here
+            return JsonResponse({"status": "success", "qr": qr_code})
+
+        except json.JSONDecodeError:
+            return JsonResponse({"status": "error", "message": "Invalid JSON"})
+
+    # GET request → just load page
+    return render(request, "scan.html")
